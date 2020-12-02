@@ -4,7 +4,7 @@ import org.apache.pulsar.client.api.{ PulsarClient => JPulsarClient, PulsarClien
 import zio.{ ZIO, ZManaged }
 
 package object pulsar {
-  
+
   type PulsarClient = Has[PulsarClient.Service]
 
   object PulsarClient {

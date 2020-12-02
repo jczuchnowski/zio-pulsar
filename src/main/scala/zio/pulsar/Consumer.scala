@@ -6,9 +6,9 @@ import zio.blocking.Blocking
 
 import scala.jdk.CollectionConverters._
 
-final class Consumer private(val consumer: JConsumer[Array[Byte]]) {
+final class Consumer private (val consumer: JConsumer[Array[Byte]]) {
 
-  def receiveOne: RIO[Blocking, Message[Array[Byte]]] = 
+  def receiveOne: RIO[Blocking, Message[Array[Byte]]] =
     ZIO.fromFutureJava(consumer.receiveAsync)
 
 }
