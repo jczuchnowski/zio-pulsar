@@ -17,7 +17,6 @@ object Main extends App {
   val app: ZManaged[PulsarClient with Blocking with Console, IOException, Unit] =
     for {
       _    <- putStrLn("Connect to Pulsar").toManaged_
-      //conn <- PulsarClient.make("localhost", 6650)
       c    <- Consumer.subscribe(Subscription.SingleSubscription("my-topic", SimpleSubscriptionProperties("my-subscription", SubscriptionType.Exclusive, SubscriptionMode.Durable)))
       p    <- Producer.make("my-topic")
       _    <- c.receiveOne.flatMap(msg => putStrLn(msg.getData.map(_.toChar).mkString)).toManaged_.fork

@@ -11,8 +11,6 @@ final class Consumer private(val consumer: JConsumer[Array[Byte]]) {
   def receiveOne: RIO[Blocking, Message[Array[Byte]]] = 
     ZIO.fromFutureJava(consumer.receiveAsync)
 
-  // def receiveStream =
-  //   consumer.
 }
 
 object Consumer {
@@ -44,13 +42,5 @@ object Consumer {
     }
     ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
   }
-
-    // val builder = client.client.newConsumer
-    //   .topic(topic)
-    //   .subscriptionName(subscription.name)
-    //   .subscriptionType(subscription.`type`)
-    //   .subscriptionMode(subscription.mode)
-    // val consumer = ZIO.effect(Consumer(builder.subscribe)).refineToOrDie[PulsarClientException]
-    // ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
 
 }

@@ -14,10 +14,3 @@ object Subscription {
   case class MultiSubscription(topics: List[String], subscription: SimpleSubscriptionProperties)    extends Subscription
   case class PatternSubscription(topicsPattern: String, subscription: PatternSubscriptionProperties) extends Subscription
 }
-// trait Subscription
-
-// case class SingleSubscription(topic: String, subscription: SubscriptionProperties) extends Subscription
-
-// case class MultiSubscription(topics: List[String], subscription: SubscriptionProperties) extends Subscription
-
-// case class PatternSubscription(topicsPattern: String, subscription: SubscriptionProperties) extends Subscription
