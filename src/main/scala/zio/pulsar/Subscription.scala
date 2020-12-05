@@ -1,12 +1,21 @@
 package zio.pulsar
 
-import org.apache.pulsar.client.api.{ RegexSubscriptionMode, SubscriptionMode, SubscriptionType }
+import org.apache.pulsar.client.api.{ KeySharedPolicy, RegexSubscriptionMode, SubscriptionInitialPosition, SubscriptionMode }
+
+trait SubscriptionType
+
+object SubscriptionType {
+  final case class Exclusive(readCompacted: Boolean = false) extends SubscriptionType
+  case object Shared                                         extends SubscriptionType
+  final case class Failover(readCompacted: Boolean = false)  extends SubscriptionType
+  final case class KeyShared(policy: KeySharedPolicy)        extends SubscriptionType
+}
 
 trait SubscriptionProperties
 
-case class SimpleSubscriptionProperties(name: String, `type`: SubscriptionType, mode: SubscriptionMode)
+case class SimpleSubscriptionProperties(name: String, `type`: SubscriptionType, mode: SubscriptionMode, initialPosition: SubscriptionInitialPosition)
     extends SubscriptionProperties
-case class PatternSubscriptionProperties(name: String, `type`: SubscriptionType, mode: RegexSubscriptionMode)
+case class PatternSubscriptionProperties(name: String, `type`: SubscriptionType, mode: RegexSubscriptionMode, initialPosition: SubscriptionInitialPosition, patternAutoDiscoveryPeriod: Int)
     extends SubscriptionProperties
 
 trait Subscription
