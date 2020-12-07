@@ -2,7 +2,6 @@ package zio.pulsar
 
 import org.apache.pulsar.client.api.{
   Message,
-  MessageListener,
   Consumer => JConsumer,
   PulsarClient => JPulsarClient,
   PulsarClientException,
@@ -13,7 +12,6 @@ import zio.blocking.Blocking
 import zio.stream._
 
 import scala.jdk.CollectionConverters._
-import zio.{ Queue, ZQueue }
 import org.apache.pulsar.client.api.ConsumerBuilder
 
 trait Consumer
@@ -27,10 +25,11 @@ object Consumer {
 
   }
 
-  final class Streaming private[Consumer] (val consumer: JConsumer[Array[Byte]], queue: Queue[Message[Array[Byte]]])
+  final class Streaming private[Consumer] (val consumer: JConsumer[Array[Byte]])
       extends Consumer {
 
-    val receive: Stream[Nothing, Message[Array[Byte]]] = ZStream.fromQueue(queue)
+    val receive: Stream[Throwable, Message[Array[Byte]]] = 
+      ZStream.fromEffect(ZIO.fromCompletionStage(consumer.receiveAsync))
 
   }
 
@@ -40,7 +39,7 @@ object Consumer {
         builder
           .subscriptionType(JSubscriptionType.Exclusive)
           .readCompacted(r)
-          
+
       case SubscriptionType.Failover(r)  => 
         builder
           .subscriptionType(JSubscriptionType.Failover)
@@ -92,15 +91,8 @@ object Consumer {
   def streaming(subscription: Subscription): ZManaged[PulsarClient, PulsarClientException, Streaming] = {
     val consumer = for {
       client <- PulsarClient.client
-      queue  <- ZQueue.unbounded[Message[Array[Byte]]]
       builder = consumerBuilder(client, subscription)
-        .messageListener(new MessageListener[Array[Byte]]() {
-          override def received(consumer: JConsumer[Array[Byte]], msg: Message[Array[Byte]]) = {
-            val _ = zio.Runtime.default.unsafeRun(queue.offer(msg))
-            ()
-          }
-        })
-    } yield new Streaming(builder.subscribe, queue)
+    } yield new Streaming(builder.subscribe)
     ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
   }
 
