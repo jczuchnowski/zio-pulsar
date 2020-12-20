@@ -3,6 +3,7 @@ package zio.pulsar
 import org.apache.pulsar.client.api.{
   Message,
   Consumer => JConsumer,
+  ConsumerBuilder,
   PulsarClient => JPulsarClient,
   PulsarClientException,
   SubscriptionType => JSubscriptionType
@@ -10,9 +11,9 @@ import org.apache.pulsar.client.api.{
 import zio.{ RIO, ZIO, ZManaged }
 import zio.blocking.Blocking
 import zio.stream._
+import zio.pulsar.SubscriptionProperties._
 
 import scala.jdk.CollectionConverters._
-import org.apache.pulsar.client.api.ConsumerBuilder
 
 trait Consumer
 
@@ -58,25 +59,21 @@ object Consumer {
     }
 
   private def consumerBuilder(client: JPulsarClient, subscription: Subscription) = {
-    subscription match {
-      case Subscription.SingleSubscription(topic, props) =>
-        subscriptionType(props.`type`, client.newConsumer)
-          .topic(topic)
-          .subscriptionName(props.name)
-          .subscriptionMode(props.mode)
-        
-      case Subscription.MultiSubscription(topics, props) =>
-        subscriptionType(props.`type`, client.newConsumer)
-          .topics(topics.asJava)
-          .subscriptionName(props.name)
-          .subscriptionMode(props.mode)
+    val consumer = subscriptionType(subscription.`type`, client.newConsumer)
+      .subscriptionName(subscription.name)
+      .subscriptionInitialPosition(subscription.initialPosition)
 
-      case Subscription.PatternSubscription(pattern, props) =>
-        subscriptionType(props.`type`, client.newConsumer)
+    subscription.properties match {
+      case TopicSubscriptionProperties(topics, mode) =>
+        consumer
+          .topics(topics.asJava)
+          .subscriptionMode(mode)
+      case PatternSubscriptionProperties(pattern, mode, period) =>
+        consumer
           .topicsPattern(pattern)
-          .subscriptionName(props.name)
-          .subscriptionTopicsMode(props.mode)
-          .patternAutoDiscoveryPeriod(props.patternAutoDiscoveryPeriod)
+          .subscriptionTopicsMode(mode)
+          .patternAutoDiscoveryPeriod(period)
+          
     }
   }
 

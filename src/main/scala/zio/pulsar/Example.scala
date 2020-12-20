@@ -6,6 +6,7 @@ import org.apache.pulsar.client.api.{ SubscriptionInitialPosition, SubscriptionM
 import zio._
 import zio.blocking.Blocking
 import zio.console._
+import zio.pulsar.SubscriptionProperties.TopicSubscriptionProperties
 
 object Example extends App {
 
@@ -18,9 +19,14 @@ object Example extends App {
     for {
       _ <- putStrLn("Connect to Pulsar").toManaged_
       c <- Consumer.subscribe(
-            Subscription.SingleSubscription(
-              "my-topic",
-              SimpleSubscriptionProperties("my-subscription", SubscriptionType.Exclusive(), SubscriptionMode.Durable, SubscriptionInitialPosition.Latest)
+            Subscription(
+              "my-subscription", 
+              SubscriptionType.Exclusive(), 
+              SubscriptionInitialPosition.Latest, 
+              TopicSubscriptionProperties(
+                List("my_topic"), 
+                SubscriptionMode.Durable
+              )
             )
           )
       p <- Producer.make("my-topic")
