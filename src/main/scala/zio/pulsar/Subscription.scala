@@ -2,7 +2,7 @@ package zio.pulsar
 
 import org.apache.pulsar.client.api.{ KeySharedPolicy, RegexSubscriptionMode, SubscriptionInitialPosition, SubscriptionMode }
 
-case class Subscription(name: String, `type`: SubscriptionType, initialPosition: SubscriptionInitialPosition, properties: SubscriptionProperties)
+case class Subscription(name: String, `type`: Option[SubscriptionType] = None, initialPosition: Option[SubscriptionInitialPosition] = None, properties: SubscriptionProperties)
 
 trait SubscriptionType
 
@@ -16,7 +16,7 @@ object SubscriptionType {
 trait SubscriptionProperties
 
 object SubscriptionProperties {
-  case class TopicSubscriptionProperties(topics: List[String], mode: SubscriptionMode) extends SubscriptionProperties
-  case class PatternSubscriptionProperties(topicsPattern: String, mode: RegexSubscriptionMode, patternAutoDiscoveryPeriod: Int)
+  case class TopicSubscriptionProperties(topics: List[String], mode: Option[SubscriptionMode] = None) extends SubscriptionProperties
+  case class PatternSubscriptionProperties(topicsPattern: String, mode: Option[RegexSubscriptionMode] = None, patternAutoDiscoveryPeriod: Option[Int] = None)
       extends SubscriptionProperties
 }

@@ -2,7 +2,6 @@ package zio.pulsar
 
 import java.io.IOException
 
-import org.apache.pulsar.client.api.{ SubscriptionInitialPosition, SubscriptionMode }
 import zio._
 import zio.blocking.Blocking
 import zio.console._
@@ -20,12 +19,9 @@ object Example extends App {
       _ <- putStrLn("Connect to Pulsar").toManaged_
       c <- Consumer.subscribe(
             Subscription(
-              "my-subscription", 
-              SubscriptionType.Exclusive(), 
-              SubscriptionInitialPosition.Latest, 
-              TopicSubscriptionProperties(
-                List("my_topic"), 
-                SubscriptionMode.Durable
+              name = "my-subscription", 
+              properties = TopicSubscriptionProperties(
+                List("my_topic")
               )
             )
           )

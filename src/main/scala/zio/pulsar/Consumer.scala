@@ -59,20 +59,23 @@ object Consumer {
     }
 
   private def consumerBuilder(client: JPulsarClient, subscription: Subscription) = {
-    val consumer = subscriptionType(subscription.`type`, client.newConsumer)
-      .subscriptionName(subscription.name)
-      .subscriptionInitialPosition(subscription.initialPosition)
+    val consumer = {
+      val cons = subscription.`type`.fold(client.newConsumer)(t => subscriptionType(t, client.newConsumer))
+        .subscriptionName(subscription.name)
+
+      subscription.initialPosition.fold(cons)(p => cons.subscriptionInitialPosition(p))
+    }
 
     subscription.properties match {
       case TopicSubscriptionProperties(topics, mode) =>
-        consumer
+        val cons = consumer
           .topics(topics.asJava)
-          .subscriptionMode(mode)
+        mode.fold(cons)(m => cons.subscriptionMode(m))
       case PatternSubscriptionProperties(pattern, mode, period) =>
-        consumer
+        val cons = consumer
           .topicsPattern(pattern)
-          .subscriptionTopicsMode(mode)
-          .patternAutoDiscoveryPeriod(period)
+        val cons_ = mode.fold(cons)(m => cons.subscriptionTopicsMode(m))
+        period.fold(cons_)(p => cons_.patternAutoDiscoveryPeriod(p))
           
     }
   }
