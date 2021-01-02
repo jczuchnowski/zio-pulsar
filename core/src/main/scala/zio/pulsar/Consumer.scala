@@ -30,7 +30,7 @@ object Consumer {
       extends Consumer {
 
     val receive: Stream[Throwable, Message[Array[Byte]]] = 
-      ZStream.fromEffect(ZIO.fromCompletionStage(consumer.receiveAsync))
+      ZStream.repeatEffect(ZIO.fromCompletionStage(consumer.receiveAsync))
 
   }
 
