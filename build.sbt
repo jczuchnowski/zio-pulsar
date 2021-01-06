@@ -35,6 +35,7 @@ lazy val examples = project
     skip in publish := true,
     moduleName := "examples",
     libraryDependencies ++= Seq(
+      "dev.zio" %% "zio-logging" % "0.5.4",
       "ch.qos.logback" % "logback-classic" % "1.2.3",
     )
   )

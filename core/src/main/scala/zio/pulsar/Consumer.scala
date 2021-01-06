@@ -2,37 +2,32 @@ package zio.pulsar
 
 import org.apache.pulsar.client.api.{
   Message,
+  MessageId,
   Consumer => JConsumer,
   ConsumerBuilder,
   PulsarClient => JPulsarClient,
   PulsarClientException,
   SubscriptionType => JSubscriptionType
 }
-import zio.{ RIO, ZIO, ZManaged }
-import zio.blocking.Blocking
+import zio.{ IO, ZIO, ZManaged }
 import zio.stream._
 import zio.pulsar.SubscriptionProperties._
 
 import scala.jdk.CollectionConverters._
 
-trait Consumer
+final class Consumer(val consumer: JConsumer[Array[Byte]]) {
+
+  def acknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
+    ZIO.effect(consumer.acknowledge(messageId)).refineToOrDie[PulsarClientException]
+
+  val receive: IO[PulsarClientException, Message[Array[Byte]]] =
+    ZIO.fromCompletionStage(consumer.receiveAsync).refineToOrDie[PulsarClientException]
+
+  val receiveStream: Stream[Throwable, Message[Array[Byte]]] = 
+    ZStream.repeatEffect(ZIO.fromCompletionStage(consumer.receiveAsync))
+}
 
 object Consumer {
-
-  final class Simple private[Consumer] (val consumer: JConsumer[Array[Byte]]) extends Consumer {
-
-    val receive: RIO[Blocking, Message[Array[Byte]]] =
-      ZIO.fromFutureJava(consumer.receiveAsync)
-
-  }
-
-  final class Streaming private[Consumer] (val consumer: JConsumer[Array[Byte]])
-      extends Consumer {
-
-    val receive: Stream[Throwable, Message[Array[Byte]]] = 
-      ZStream.repeatEffect(ZIO.fromCompletionStage(consumer.receiveAsync))
-
-  }
 
   private def subscriptionType(t: SubscriptionType, builder: ConsumerBuilder[Array[Byte]]): ConsumerBuilder[Array[Byte]] =
     t match {
@@ -80,19 +75,11 @@ object Consumer {
     }
   }
 
-  def subscribe(subscription: Subscription): ZManaged[PulsarClient, PulsarClientException, Simple] = {
+  def subscribe(subscription: Subscription): ZManaged[PulsarClient, PulsarClientException, Consumer] = {
     val consumer = PulsarClient.client.map { client =>
       val builder = consumerBuilder(client, subscription)
-      new Simple(builder.subscribe)
+      new Consumer(builder.subscribe)
     }
-    ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
-  }
-
-  def streaming(subscription: Subscription): ZManaged[PulsarClient, PulsarClientException, Streaming] = {
-    val consumer = for {
-      client <- PulsarClient.client
-      builder = consumerBuilder(client, subscription)
-    } yield new Streaming(builder.subscribe)
     ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
   }
 
