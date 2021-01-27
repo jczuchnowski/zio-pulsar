@@ -23,7 +23,7 @@ package object pulsar {
       ZManaged.make(ZIO.effectTotal(cl))(c => c.client.map(_.close()).orDie)
     }
 
-    def client: ZIO[PulsarClient, PulsarClientException, JPulsarClient] =
+    def make: ZIO[PulsarClient, PulsarClientException, JPulsarClient] =
       ZIO.accessM[PulsarClient](_.get.client)
   }
 }

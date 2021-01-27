@@ -4,16 +4,14 @@ import org.apache.pulsar.client.api.{
   Message,
   MessageId,
   Consumer => JConsumer,
-  ConsumerBuilder,
-  PulsarClient => JPulsarClient,
   PulsarClientException,
-  SubscriptionType => JSubscriptionType
 }
-import zio.{ IO, ZIO, ZManaged }
+import zio.{ IO, ZIO }
+import zio.blocking._
 import zio.stream._
-import zio.pulsar.SubscriptionProperties._
+//import zio.pulsar.SubscriptionProperties._
 
-import scala.jdk.CollectionConverters._
+//import scala.jdk.CollectionConverters._
 
 final class Consumer(val consumer: JConsumer[Array[Byte]]) {
 
@@ -23,64 +21,64 @@ final class Consumer(val consumer: JConsumer[Array[Byte]]) {
   val receive: IO[PulsarClientException, Message[Array[Byte]]] =
     ZIO.fromCompletionStage(consumer.receiveAsync).refineToOrDie[PulsarClientException]
 
-  val receiveStream: Stream[Throwable, Message[Array[Byte]]] = 
-    ZStream.repeatEffect(ZIO.fromCompletionStage(consumer.receiveAsync))
+  val receiveStream: ZStream[Blocking, PulsarClientException, Message[Array[Byte]]] = 
+    ZStream.repeatEffect(effectBlocking(consumer.receive).refineToOrDie[PulsarClientException])
 }
 
-object Consumer {
+// object Consumer {
 
-  private def subscriptionType(t: SubscriptionType, builder: ConsumerBuilder[Array[Byte]]): ConsumerBuilder[Array[Byte]] =
-    t match {
-      case SubscriptionType.Exclusive(r) => 
-        builder
-          .subscriptionType(JSubscriptionType.Exclusive)
-          .readCompacted(r)
+//   private def subscriptionType(t: SubscriptionType, builder: ConsumerBuilder[Array[Byte]]): ConsumerBuilder[Array[Byte]] =
+//     t match {
+//       case SubscriptionType.Exclusive(r) => 
+//         builder
+//           .subscriptionType(JSubscriptionType.Exclusive)
+//           .readCompacted(r)
 
-      case SubscriptionType.Failover(r)  => 
-        builder
-          .subscriptionType(JSubscriptionType.Failover)
-          .readCompacted(r)
+//       case SubscriptionType.Failover(r)  => 
+//         builder
+//           .subscriptionType(JSubscriptionType.Failover)
+//           .readCompacted(r)
 
-      case SubscriptionType.Shared       => 
-        builder
-          .subscriptionType(JSubscriptionType.Shared)
-          .readCompacted(false)
+//       case SubscriptionType.Shared       => 
+//         builder
+//           .subscriptionType(JSubscriptionType.Shared)
+//           .readCompacted(false)
 
-      case SubscriptionType.KeyShared(p) => 
-        builder
-          .subscriptionType(JSubscriptionType.Key_Shared)
-          .readCompacted(false)
-          .keySharedPolicy(p)
-    }
+//       case SubscriptionType.KeyShared(p) => 
+//         builder
+//           .subscriptionType(JSubscriptionType.Key_Shared)
+//           .readCompacted(false)
+//           .keySharedPolicy(p)
+//     }
 
-  private def consumerBuilder(client: JPulsarClient, subscription: Subscription) = {
-    val consumer = {
-      val cons = subscription.`type`.fold(client.newConsumer)(t => subscriptionType(t, client.newConsumer))
-        .subscriptionName(subscription.name)
+//   private def consumerBuilder(client: JPulsarClient, subscription: Subscription) = {
+//     val consumer = {
+//       val cons = subscription.`type`.fold(client.newConsumer)(t => subscriptionType(t, client.newConsumer))
+//         .subscriptionName(subscription.name)
 
-      subscription.initialPosition.fold(cons)(p => cons.subscriptionInitialPosition(p))
-    }
+//       subscription.initialPosition.fold(cons)(p => cons.subscriptionInitialPosition(p))
+//     }
 
-    subscription.properties match {
-      case TopicSubscriptionProperties(topics, mode) =>
-        val cons = consumer
-          .topics(topics.asJava)
-        mode.fold(cons)(m => cons.subscriptionMode(m))
-      case PatternSubscriptionProperties(pattern, mode, period) =>
-        val cons = consumer
-          .topicsPattern(pattern)
-        val cons_ = mode.fold(cons)(m => cons.subscriptionTopicsMode(m))
-        period.fold(cons_)(p => cons_.patternAutoDiscoveryPeriod(p))
+//     subscription.properties match {
+//       case TopicSubscriptionProperties(topics, mode) =>
+//         val cons = consumer
+//           .topics(topics.asJava)
+//         mode.fold(cons)(m => cons.subscriptionMode(m))
+//       case PatternSubscriptionProperties(pattern, mode, period) =>
+//         val cons = consumer
+//           .topicsPattern(pattern)
+//         val cons_ = mode.fold(cons)(m => cons.subscriptionTopicsMode(m))
+//         period.fold(cons_)(p => cons_.patternAutoDiscoveryPeriod(p))
           
-    }
-  }
+//     }
+//   }
 
-  def subscribe(subscription: Subscription): ZManaged[PulsarClient, PulsarClientException, Consumer] = {
-    val consumer = PulsarClient.client.map { client =>
-      val builder = consumerBuilder(client, subscription)
-      new Consumer(builder.subscribe)
-    }
-    ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
-  }
+//   def subscribe(subscription: Subscription): ZManaged[PulsarClient, PulsarClientException, Consumer] = {
+//     val consumer = PulsarClient.client.map { client =>
+//       val builder = consumerBuilder(client, subscription)
+//       new Consumer(builder.subscribe)
+//     }
+//     ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
+//   }
 
-}
+// }

@@ -2,10 +2,11 @@ package examples
 
 import org.apache.pulsar.client.api.PulsarClientException
 import zio._
+import zio.blocking._
 import zio.clock._
 import zio.console._
 import zio.pulsar._
-import zio.pulsar.SubscriptionProperties.TopicSubscriptionProperties
+//import zio.pulsar.SubscriptionProperties.TopicSubscriptionProperties
 import zio.logging._
 
 object StreamingExample extends App {
@@ -37,18 +38,23 @@ object StreamingExample extends App {
                   } yield ()).repeatN(10).toManaged_
     } yield ()
 
-  val consumer: ZManaged[PulsarClient with Logging, Throwable, Unit] =
+  val consumer: ZManaged[PulsarClient with Logging with Blocking, Throwable, Unit] =
     for {
       _ <- log.info("Connect to Pulsar").toManaged_
-      c <- Consumer.subscribe(
-            Subscription(
-              name = "my-subscription", 
-              `type` = Some(SubscriptionType.Exclusive()),
-              properties = TopicSubscriptionProperties(
-                List(topic)
-              )
-            )
-          )
+      client <- PulsarClient.make.toManaged_
+      c   <- ConsumerBuilder(client.newConsumer())
+               .withSubscription(Subscription("my-subscription", SubscriptionType.Exclusive))
+               .withTopic(topic)
+               .build
+      // c <- Consumer.subscribe(
+      //       Subscription(
+      //         name = "my-subscription", 
+      //         `type` = Some(SubscriptionType.Exclusive()),
+      //         properties = TopicSubscriptionProperties(
+      //           List(topic)
+      //         )
+      //       )
+      //     )
       _ <- c.receiveStream.take(10).foreach { a => 
             log.info("Received: (id: " + a.getMessageId.toString + ") " + a.getData().map(_.toChar).mkString) *>
               c.acknowledge(a.getMessageId())
