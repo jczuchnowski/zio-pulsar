@@ -13,7 +13,7 @@ import zio.stream._
 
 //import scala.jdk.CollectionConverters._
 
-final class Consumer(val consumer: JConsumer[Array[Byte]]) {
+final class Consumer(val consumer: JConsumer[Array[Byte]]):
 
   def acknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
     ZIO.effect(consumer.acknowledge(messageId)).refineToOrDie[PulsarClientException]
@@ -23,7 +23,6 @@ final class Consumer(val consumer: JConsumer[Array[Byte]]) {
 
   val receiveStream: ZStream[Blocking, PulsarClientException, Message[Array[Byte]]] = 
     ZStream.repeatEffect(effectBlocking(consumer.receive).refineToOrDie[PulsarClientException])
-}
 
 // object Consumer {
 
