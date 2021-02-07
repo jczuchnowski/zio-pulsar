@@ -5,7 +5,8 @@ import org.apache.pulsar.client.api.{
   ConsumerBuilder => JConsumerBuilder,
   DeadLetterPolicy, 
   KeySharedPolicy,
-  PulsarClientException
+  PulsarClientException,
+  SubscriptionInitialPosition,
 }
 import zio.{ ZIO, ZManaged }
 import zio.duration.Duration
@@ -13,9 +14,21 @@ import zio.duration.Duration
 case class Subscription[K <: SubscriptionKind](
   name: String, 
   `type`: SubscriptionType[K], 
-  //initialPosition: Option[SubscriptionInitialPosition] = None, 
+  initialPosition: Option[SubscriptionInitialPosition] = None, 
   //properties: SubscriptionProperties
-)
+) { self =>
+  
+  def withInitialPosition(initialPosition: SubscriptionInitialPosition): Subscription[K] =
+    self.copy(initialPosition = Some(initialPosition))
+
+}
+
+object Subscription {
+
+  def apply[K <: SubscriptionKind](name: String, `type`: SubscriptionType[K], initialPosition: SubscriptionInitialPosition): Subscription[K] =
+    Subscription(name, `type`, Some(initialPosition))
+
+}
 
 sealed trait SubscriptionKind
 
@@ -26,12 +39,11 @@ object SubscriptionKind {
 
 sealed trait SubscriptionType[K <: SubscriptionKind] { self =>
   def asJava: org.apache.pulsar.client.api.SubscriptionType = 
-    self match {
+    self match
       case _: SubscriptionType.Exclusive.type => org.apache.pulsar.client.api.SubscriptionType.Exclusive
       case _: SubscriptionType.Failover.type  => org.apache.pulsar.client.api.SubscriptionType.Failover
       case _: SubscriptionType.KeyShared      => org.apache.pulsar.client.api.SubscriptionType.Key_Shared
       case _: SubscriptionType.Shared.type    => org.apache.pulsar.client.api.SubscriptionType.Shared
-    }
 }
 
 object SubscriptionType {
@@ -60,7 +72,12 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind](builder: JCo
     new ConsumerBuilder(builder.readCompacted(true))
 
   def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[S with Subscribed, K1] =
-    new ConsumerBuilder(builder.subscriptionType(subscription.`type`.asJava).subscriptionName(subscription.name))
+    new ConsumerBuilder(
+      subscription.initialPosition
+        .fold(builder)(p => builder.subscriptionInitialPosition(p))
+        .subscriptionType(subscription.`type`.asJava)
+        .subscriptionName(subscription.name)
+    )
 
   def withTopic(topic: String): ConsumerBuilder[S with ToTopic, K] =
     new ConsumerBuilder(builder.topic(topic))
