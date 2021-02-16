@@ -16,62 +16,60 @@ case class Subscription[K <: SubscriptionKind](
   `type`: SubscriptionType[K], 
   initialPosition: Option[SubscriptionInitialPosition] = None, 
   //properties: SubscriptionProperties
-) { self =>
+):
+  self =>
   
   def withInitialPosition(initialPosition: SubscriptionInitialPosition): Subscription[K] =
     self.copy(initialPosition = Some(initialPosition))
 
-}
-
-object Subscription {
-
+object Subscription:
   def apply[K <: SubscriptionKind](name: String, `type`: SubscriptionType[K], initialPosition: SubscriptionInitialPosition): Subscription[K] =
     Subscription(name, `type`, Some(initialPosition))
 
-}
+enum SubscriptionKind:
+  case SingleConsumerSubscription
+  case SharedSubscription
 
-sealed trait SubscriptionKind
+// sealed trait SubscriptionType[K <: SubscriptionKind] { self =>
+//   def asJava: org.apache.pulsar.client.api.SubscriptionType = 
+//     self match
+//       case _: SubscriptionType.Exclusive.type => org.apache.pulsar.client.api.SubscriptionType.Exclusive
+//       case _: SubscriptionType.Failover.type  => org.apache.pulsar.client.api.SubscriptionType.Failover
+//       case _: SubscriptionType.KeyShared      => org.apache.pulsar.client.api.SubscriptionType.Key_Shared
+//       case _: SubscriptionType.Shared.type    => org.apache.pulsar.client.api.SubscriptionType.Shared
+// }
 
-object SubscriptionKind {
-  sealed trait SingleConsumerSubscription extends SubscriptionKind
-  sealed trait SharedSubscription         extends SubscriptionKind
-}
+enum SubscriptionType[K <: SubscriptionKind]:
+  self =>
+  case Exclusive                          extends SubscriptionType[SubscriptionKind.SingleConsumerSubscription.type]
+  case Failover                           extends SubscriptionType[SubscriptionKind.SingleConsumerSubscription.type]
+  case KeyShared(policy: KeySharedPolicy) extends SubscriptionType[SubscriptionKind.SharedSubscription.type]
+  case Shared                             extends SubscriptionType[SubscriptionKind.SharedSubscription.type]
 
-sealed trait SubscriptionType[K <: SubscriptionKind] { self =>
   def asJava: org.apache.pulsar.client.api.SubscriptionType = 
     self match
       case _: SubscriptionType.Exclusive.type => org.apache.pulsar.client.api.SubscriptionType.Exclusive
       case _: SubscriptionType.Failover.type  => org.apache.pulsar.client.api.SubscriptionType.Failover
       case _: SubscriptionType.KeyShared      => org.apache.pulsar.client.api.SubscriptionType.Key_Shared
       case _: SubscriptionType.Shared.type    => org.apache.pulsar.client.api.SubscriptionType.Shared
-}
 
-object SubscriptionType {
-  object Exclusive                                    extends SubscriptionType[SubscriptionKind.SingleConsumerSubscription]
-  object Failover                                     extends SubscriptionType[SubscriptionKind.SingleConsumerSubscription]
-  final case class KeyShared(policy: KeySharedPolicy) extends SubscriptionType[SubscriptionKind.SharedSubscription]
-  object Shared                                       extends SubscriptionType[SubscriptionKind.SharedSubscription]
-}
+enum ConfigPart:
+  case Empty
+  case Subscribed
+  case ToTopic
 
-sealed trait ConfigPart
+type Full = ConfigPart.Empty.type with ConfigPart.Subscribed.type with ConfigPart.ToTopic.type
 
-object ConfigPart {
-  sealed trait Empty      extends ConfigPart
-  sealed trait Subscribed extends ConfigPart
-  sealed trait ToTopic    extends ConfigPart
-
-  type Full = Empty with Subscribed with ToTopic
-}
-
-final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind](builder: JConsumerBuilder[Array[Byte]]) { self =>
+final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind](builder: JConsumerBuilder[Array[Byte]]):
+  self =>
 
   import ConfigPart._
   import SubscriptionKind._
 
-  def withReadCompacted(implicit ev: K =:= SharedSubscription): ConsumerBuilder[S, K] =
+  def withReadCompacted(implicit ev: K =:= SharedSubscription.type): ConsumerBuilder[S, K] =
     new ConsumerBuilder(builder.readCompacted(true))
 
-  def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[S with Subscribed, K1] =
+  def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[S with Subscribed.type, K1] =
     new ConsumerBuilder(
       subscription.initialPosition
         .fold(builder)(p => builder.subscriptionInitialPosition(p))
@@ -79,20 +77,15 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind](builder: JCo
         .subscriptionName(subscription.name)
     )
 
-  def withTopic(topic: String): ConsumerBuilder[S with ToTopic, K] =
+  def withTopic(topic: String): ConsumerBuilder[S with ToTopic.type, K] =
     new ConsumerBuilder(builder.topic(topic))
 
-  def build(implicit ev: S =:= Full): ZManaged[PulsarClient, PulsarClientException, Consumer] = {
+  def build(implicit ev: S =:= Full): ZManaged[PulsarClient, PulsarClientException, Consumer] =
     val consumer = ZIO.effect(new Consumer(builder.subscribe)).refineToOrDie[PulsarClientException]
     ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
-  }
-}
 
-object ConsumerBuilder {
-
-  def apply(builder: JConsumerBuilder[Array[Byte]]): ConsumerBuilder[ConfigPart.Empty, Nothing] = new ConsumerBuilder(builder)
-
-}
+object ConsumerBuilder:
+  def apply(builder: JConsumerBuilder[Array[Byte]]): ConsumerBuilder[ConfigPart.Empty.type, Nothing] = new ConsumerBuilder(builder)
 
 // trait SubscriptionProperties
 
