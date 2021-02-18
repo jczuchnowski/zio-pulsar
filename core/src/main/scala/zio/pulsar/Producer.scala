@@ -3,14 +3,12 @@ package zio.pulsar
 import org.apache.pulsar.client.api.{ MessageId, Producer => JProducer, PulsarClientException }
 import zio.{ IO, ZIO, ZManaged }
 
-final class Producer private (val producer: JProducer[Array[Byte]]) {
+final class Producer private (val producer: JProducer[Array[Byte]]):
 
   def send(message: Array[Byte]): IO[PulsarClientException, MessageId] =
     ZIO.effect(producer.send(message)).refineToOrDie[PulsarClientException]
 
-}
-
-object Producer {
+object Producer:
 
   def make(topic: String): ZManaged[PulsarClient, PulsarClientException, Producer] = ???/**{
     val producer = PulsarClient.make.flatMap { client =>
@@ -19,4 +17,3 @@ object Producer {
     }
     ZManaged.make(producer)(p => ZIO.effect(p.producer.close).orDie)
   }*/
-}

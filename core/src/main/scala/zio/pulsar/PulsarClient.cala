@@ -1,9 +1,7 @@
-package zio
+package zio.pulsar
 
 import org.apache.pulsar.client.api.{ PulsarClient => JPulsarClient, PulsarClientException }
 import zio._ //{ ZIO, ZManaged }
-
-package object pulsar {
 
   // type MyService = Has[MyService.Service]
 
@@ -22,11 +20,10 @@ package object pulsar {
   // }
   type PulsarClient = Has[PulsarClient.Service]
 
-  object PulsarClient {
+  object PulsarClient:
 
-    trait Service {
+    trait Service"
       def client: IO[PulsarClientException, JPulsarClient]
-    }
 
     def live(host: String, port: Int): ULayer[PulsarClient] =
       ZLayer.fromManaged {
@@ -41,5 +38,3 @@ package object pulsar {
 
     def make: ZIO[PulsarClient, PulsarClientException, JPulsarClient] =
       ZIO.accessM[PulsarClient](_.get.client)
-  }
-}
