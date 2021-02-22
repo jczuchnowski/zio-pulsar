@@ -6,6 +6,7 @@ import zio.blocking._
 import zio.clock._
 import zio.console._
 import zio.pulsar._
+import zio.stream._
 //import zio.pulsar.SubscriptionProperties.TopicSubscriptionProperties
 //import zio.logging._
 
@@ -28,14 +29,9 @@ object StreamingExample extends App {
 
   val producer: ZManaged[PulsarClient/* with Logging*/, PulsarClientException, Unit] = 
     for {
-      p <- Producer.make(topic)
-      counter <- ZRef.make(0).toManaged_
-      _       <- (for {
-                    i <- counter.getAndUpdate(_ + 1)
-                    m = s"Message $i"
-                    _ <- p.send(m.getBytes())
-                    //_ <- log.info(s"Send: " + m)
-                  } yield ()).repeatN(10).toManaged_
+      sink   <- Producer.make(topic).map(_.asSink)
+      stream = Stream.fromIterable(0 to 100).map(i => s"Message $i".getBytes())
+      _      <- stream.run(sink).toManaged_
     } yield ()
 
   val consumer: ZManaged[PulsarClient/* with Logging*/ with Blocking, Throwable, Unit] =
@@ -46,15 +42,6 @@ object StreamingExample extends App {
                .withSubscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                .withTopic(topic)
                .build
-      // c <- Consumer.subscribe(
-      //       Subscription(
-      //         name = "my-subscription", 
-      //         `type` = Some(SubscriptionType.Exclusive()),
-      //         properties = TopicSubscriptionProperties(
-      //           List(topic)
-      //         )
-      //       )
-      //     )
       _ <- c.receiveStream.take(10).foreach { a => 
             //log.info("Received: (id: " + a.getMessageId.toString + ") " + a.getData().map(_.toChar).mkString) *>
               c.acknowledge(a.getMessageId())

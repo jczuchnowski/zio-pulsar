@@ -22,7 +22,7 @@ import zio._ //{ ZIO, ZManaged }
 
   object PulsarClient:
 
-    trait Service"
+    trait Service:
       def client: IO[PulsarClientException, JPulsarClient]
 
     def live(host: String, port: Int): ULayer[PulsarClient] =

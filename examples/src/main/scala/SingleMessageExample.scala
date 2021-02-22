@@ -29,30 +29,12 @@ object SingleMessageExample extends App {
   val app: ZManaged[PulsarClient/* with Logging*/, PulsarClientException, Unit] =
     for {
       //_ <- log.info("Connect to Pulsar").toManaged_
-      // c <- Consumer.subscribe(
-      //       Subscription(
-      //         name = "my-subscription", 
-      //         `type` = Some(SubscriptionType.Shared),
-      //         properties = TopicSubscriptionProperties(
-      //           List(topic), Some(SubscriptionMode.Durable)
-      //         )
-      //       )
-      //     )
       client <- PulsarClient.make.toManaged_
       c   <- ConsumerBuilder(client.newConsumer())
                .withSubscription(Subscription("my-subscription", SubscriptionType.Shared))
                .withReadCompacted
                .withTopic(topic)
                .build
-      // c <- Consumer.subscribe(
-      //       Subscription(
-      //         name = "my-subscription", 
-      //         `type` = Some(SubscriptionType.Exclusive(true)),
-      //         properties = TopicSubscriptionProperties(
-      //           List(topic), Some(SubscriptionMode.NonDurable)
-      //         )
-      //       )
-      //     )
       p <- Producer.make(topic)
       _ <- p.send("Hello!".getBytes).toManaged_
       m <- c.receive.toManaged_

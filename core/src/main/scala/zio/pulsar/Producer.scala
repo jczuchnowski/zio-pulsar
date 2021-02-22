@@ -2,11 +2,14 @@ package zio.pulsar
 
 import org.apache.pulsar.client.api.{ MessageId, Producer => JProducer, PulsarClientException }
 import zio.{ IO, ZIO, ZManaged }
+import zio.stream.ZSink
 
 final class Producer private (val producer: JProducer[Array[Byte]]):
 
   def send(message: Array[Byte]): IO[PulsarClientException, MessageId] =
     ZIO.effect(producer.send(message)).refineToOrDie[PulsarClientException]
+
+  def asSink = ZSink.foreach(m => send(m))
 
 object Producer:
 
@@ -17,3 +20,4 @@ object Producer:
     }
     ZManaged.make(producer)(p => ZIO.effect(p.producer.close).orDie)
   }*/
+
