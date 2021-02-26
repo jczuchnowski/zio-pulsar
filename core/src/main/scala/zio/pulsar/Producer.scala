@@ -13,11 +13,10 @@ final class Producer private (val producer: JProducer[Array[Byte]]):
 
 object Producer:
 
-  def make(topic: String): ZManaged[PulsarClient, PulsarClientException, Producer] = ???/**{
+  def make(topic: String): ZManaged[PulsarClient, PulsarClientException, Producer] =
     val producer = PulsarClient.make.flatMap { client =>
       val builder = client.newProducer.topic(topic)
       ZIO.effect(new Producer(builder.create)).refineToOrDie[PulsarClientException]
     }
     ZManaged.make(producer)(p => ZIO.effect(p.producer.close).orDie)
-  }*/
 

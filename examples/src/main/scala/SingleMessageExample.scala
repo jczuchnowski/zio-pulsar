@@ -30,7 +30,7 @@ object SingleMessageExample extends App {
     for {
       //_ <- log.info("Connect to Pulsar").toManaged_
       client <- PulsarClient.make.toManaged_
-      c   <- ConsumerBuilder(client.newConsumer())
+      c   <- ConsumerBuilder(client)
                .withSubscription(Subscription("my-subscription", SubscriptionType.Shared))
                .withReadCompacted
                .withTopic(topic)

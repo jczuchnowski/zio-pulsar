@@ -5,6 +5,7 @@ import org.apache.pulsar.client.api.{
   ConsumerBuilder => JConsumerBuilder,
   DeadLetterPolicy, 
   KeySharedPolicy,
+  PulsarClient => JPulsarClient,
   PulsarClientException,
   SubscriptionInitialPosition,
 }
@@ -27,6 +28,12 @@ object Subscription:
   def apply[K <: SubscriptionKind](name: String, `type`: SubscriptionType[K], initialPosition: SubscriptionInitialPosition): Subscription[K] =
     Subscription(name, `type`, Some(initialPosition))
 
+
+sealed trait SubscriptionMode
+
+object SubscriptionMode:
+  sealed trait Topic extends SubscriptionMode
+  sealed trait Regex extends SubscriptionMode
 
 sealed trait SubscriptionKind
 
@@ -58,16 +65,23 @@ object ConfigPart:
 
   type ConfigComplete = Empty with Subscribed with ToTopic
 
-final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind](builder: JConsumerBuilder[Array[Byte]]):
+final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind, M <: SubscriptionMode](builder: JConsumerBuilder[Array[Byte]]):
   self =>
 
     import ConfigPart._
     import SubscriptionKind._
+    import SubscriptionMode._
 
-    def withReadCompacted(implicit ev: K =:= SharedSubscription): ConsumerBuilder[S, K] =
+    def withName(name: String): ConsumerBuilder[S, K, M] =
+      new ConsumerBuilder(builder.consumerName(name))
+
+    def withPattern(pattern: String): ConsumerBuilder[S with ToTopic, K, Regex] =
+      new ConsumerBuilder(builder.topicsPattern(pattern))
+
+    def withReadCompacted(implicit ev: K =:= SharedSubscription): ConsumerBuilder[S, K, M] =
       new ConsumerBuilder(builder.readCompacted(true))
 
-    def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[S with Subscribed, K1] =
+    def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[S with Subscribed, K1, M] =
       new ConsumerBuilder(
         subscription.initialPosition
           .fold(builder)(p => builder.subscriptionInitialPosition(p))
@@ -75,7 +89,7 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind](builder: JCo
           .subscriptionName(subscription.name)
       )
 
-    def withTopic(topic: String): ConsumerBuilder[S with ToTopic, K] =
+    def withTopic(topic: String): ConsumerBuilder[S with ToTopic, K, Topic] =
       new ConsumerBuilder(builder.topic(topic))
 
     def build(implicit ev: S =:= ConfigComplete): ZManaged[PulsarClient, PulsarClientException, Consumer] =
@@ -83,7 +97,7 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind](builder: JCo
       ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
 
 object ConsumerBuilder:
-  def apply(builder: JConsumerBuilder[Array[Byte]]): ConsumerBuilder[ConfigPart.Empty, Nothing] = new ConsumerBuilder(builder)
+  def apply(client: JPulsarClient): ConsumerBuilder[ConfigPart.Empty, Nothing, Nothing] = new ConsumerBuilder(client.newConsumer)
 
 // trait SubscriptionProperties
 
