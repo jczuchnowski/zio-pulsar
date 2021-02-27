@@ -20,14 +20,14 @@ object SingleMessageExample extends App {
   //   Logging.console(
   //     logLevel = LogLevel.Info,
   //     format = LogFormat.ColoredLogFormat()
-  //   ) >>> Logging.withRootLoggerName("single-message-example")
+  //   ) >>> Logging.withRootLoggerName("single-message-example")`
 
   val layer = ((Console.live ++ Clock.live)/* >>> logger*/) >+> pulsarClient
 
   val topic = "my-topic-1"
 
   val app: ZManaged[PulsarClient/* with Logging*/, PulsarClientException, Unit] =
-    for {
+    for
       //_ <- log.info("Connect to Pulsar").toManaged_
       client <- PulsarClient.make.toManaged_
       c   <- ConsumerBuilder(client)
@@ -40,6 +40,6 @@ object SingleMessageExample extends App {
       m <- c.receive.toManaged_
       //_ <- log.info("Received: " + m.getData.map(_.toChar).mkString).toManaged_
       //_ <- log.info("Finished").toManaged_
-    } yield ()
+    yield ()
 
 }

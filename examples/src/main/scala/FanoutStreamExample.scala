@@ -27,14 +27,14 @@ object FanoutStreamExample extends App:
   val pattern = "dynamic-topic-"
 
   val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
-    for {
+    for
       sink   <- DynamicProducer.make.map(_.asSink)
       stream = Stream.fromIterable(0 to 100).map(i => (s"$pattern${i%5}", s"Message $i".getBytes))
       _      <- stream.run(sink).toManaged_
-    } yield ()
+    yield ()
 
   val consumer: ZManaged[PulsarClient with Console with Blocking, Throwable, Unit] =
-    for {
+    for
       client <- PulsarClient.make.toManaged_
       c   <- ConsumerBuilder(client)
                .withSubscription(Subscription("my-subscription", SubscriptionType.Exclusive))
@@ -45,14 +45,14 @@ object FanoutStreamExample extends App:
               c.acknowledge(a.getMessageId())
             }.toManaged_
       _ <- putStrLn("Finished").toManaged_
-    } yield ()
+    yield ()
 
   val app =
-    for {
+    for
       f <- consumer.fork
       _ <- producer
       _ <- f.join.toManaged_
-    } yield ()
+    yield ()
 
 final class DynamicProducer private (val client: JPulsarClient):
 

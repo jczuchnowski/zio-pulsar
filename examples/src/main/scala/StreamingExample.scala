@@ -28,14 +28,14 @@ object StreamingExample extends App {
   val topic = "my-topic"
 
   val producer: ZManaged[PulsarClient/* with Logging*/, PulsarClientException, Unit] = 
-    for {
+    for
       sink   <- Producer.make(topic).map(_.asSink)
       stream = Stream.fromIterable(0 to 100).map(i => s"Message $i".getBytes())
       _      <- stream.run(sink).toManaged_
-    } yield ()
+    yield ()
 
   val consumer: ZManaged[PulsarClient/* with Logging*/ with Blocking, Throwable, Unit] =
-    for {
+    for
       //_ <- log.info("Connect to Pulsar").toManaged_
       client <- PulsarClient.make.toManaged_
       c   <- ConsumerBuilder(client)
@@ -47,12 +47,12 @@ object StreamingExample extends App {
               c.acknowledge(a.getMessageId())
             }.toManaged_
       //_ <- log.info("Finished").toManaged_
-    } yield ()
+    yield ()
 
   val app =
-    for {
+    for
       f <- consumer.fork
       _ <- producer
       _ <- f.join.toManaged_
-    } yield ()
+    yield ()
 }
