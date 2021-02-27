@@ -38,3 +38,13 @@ lazy val examples = project
     ),
   )
   .dependsOn(core)
+
+  lazy val root = project
+    .in(file("."))
+    .settings(
+      skip in publish := true
+    )
+    .aggregate(
+      core,
+      examples,
+    )

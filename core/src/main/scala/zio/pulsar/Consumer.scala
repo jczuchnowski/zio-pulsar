@@ -18,6 +18,9 @@ final class Consumer(val consumer: JConsumer[Array[Byte]]):
   def acknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
     ZIO.effect(consumer.acknowledge(messageId)).refineToOrDie[PulsarClientException]
 
+  def negativeAcknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
+    ZIO.effect(consumer.negativeAcknowledge(messageId)).refineToOrDie[PulsarClientException]
+
   val receive: IO[PulsarClientException, Message[Array[Byte]]] =
     ZIO.fromCompletionStage(consumer.receiveAsync).refineToOrDie[PulsarClientException]
 
