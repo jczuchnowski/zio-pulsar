@@ -8,16 +8,11 @@ import org.apache.pulsar.client.api.{
 }
 import zio.{ IO, ZIO }
 import zio.blocking._
+import zio.pulsar.codec.Decoder
 import zio.stream._
 //import zio.pulsar.SubscriptionProperties._
 
 //import scala.jdk.CollectionConverters._
-
-trait Decoder[M]:
-  def decode(m: Array[Byte]): M
-
-given stringDecoder: Decoder[String] with
-  def decode(m: Array[Byte]) = new String(m)
 
 final case class Message[M](id: MessageId, value: M)
 

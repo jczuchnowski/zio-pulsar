@@ -12,6 +12,7 @@ import org.apache.pulsar.client.api.{
 }
 import zio.{ ZIO, ZManaged }
 import zio.duration.Duration
+import zio.pulsar.codec.Decoder
 
 case class Subscription[K <: SubscriptionKind](
   name: String, 

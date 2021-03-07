@@ -16,7 +16,7 @@ object SingleMessageExample extends App {
 
   val topic = "my-topic"
 
-  import zio.pulsar.given
+  import zio.pulsar.codec.given
 
   val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for

@@ -2,13 +2,8 @@ package zio.pulsar
 
 import org.apache.pulsar.client.api.{ MessageId, Producer => JProducer, PulsarClientException }
 import zio.{ IO, ZIO, ZManaged }
+import zio.pulsar.codec.Encoder
 import zio.stream.ZSink
-
-trait Encoder[M]:
-  def encode(m: M): Array[Byte]
-
-given stringEncoder: Encoder[String] with
-  def encode(m: String) = m.getBytes
 
 final class Producer[M] private (val producer: JProducer[Array[Byte]])(using encoder: Encoder[M]):
 

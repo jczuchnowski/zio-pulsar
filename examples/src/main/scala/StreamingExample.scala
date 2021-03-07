@@ -19,7 +19,7 @@ object StreamingExample extends App {
 
   val topic = "my-topic"
 
-  import zio.pulsar.given
+  import zio.pulsar.codec.given
 
   val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for

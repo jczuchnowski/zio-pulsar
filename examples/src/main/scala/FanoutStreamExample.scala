@@ -26,7 +26,7 @@ object FanoutStreamExample extends App:
 
   val pattern = "dynamic-topic-"
 
-  import zio.pulsar.given
+  import zio.pulsar.codec.given
 
   val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for
