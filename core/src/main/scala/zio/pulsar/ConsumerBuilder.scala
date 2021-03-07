@@ -7,6 +7,7 @@ import org.apache.pulsar.client.api.{
   KeySharedPolicy,
   PulsarClient => JPulsarClient,
   PulsarClientException,
+  RegexSubscriptionMode,
   SubscriptionInitialPosition,
 }
 import zio.{ ZIO, ZManaged }
@@ -71,6 +72,7 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind, M <: Subscri
     import ConfigPart._
     import SubscriptionKind._
     import SubscriptionMode._
+    import RegexSubscriptionMode._
 
     def withName(name: String): ConsumerBuilder[S, K, M] =
       new ConsumerBuilder(builder.consumerName(name))
@@ -78,7 +80,10 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind, M <: Subscri
     def withPattern(pattern: String): ConsumerBuilder[S with ToTopic, K, Regex] =
       new ConsumerBuilder(builder.topicsPattern(pattern))
 
-    def withReadCompacted(implicit ev: K =:= SharedSubscription): ConsumerBuilder[S, K, M] =
+    def withPatternAutoDiscoveryPeriod(minutes: Int)(implicit ev: M =:= Regex): ConsumerBuilder[S, K, M] =
+      new ConsumerBuilder(builder.patternAutoDiscoveryPeriod(minutes))
+
+    def withReadCompacted(implicit ev: K =:= SingleConsumerSubscription): ConsumerBuilder[S, K, M] =
       new ConsumerBuilder(builder.readCompacted(true))
 
     def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[S with Subscribed, K1, M] =
@@ -89,6 +94,9 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind, M <: Subscri
           .subscriptionName(subscription.name)
       )
 
+    def withSubscriptionTopicsMode(mode: RegexSubscriptionMode)(implicit ev: M =:= Regex): ConsumerBuilder[S, K, M] =
+      new ConsumerBuilder(builder.subscriptionTopicsMode(mode))
+
     def withTopic(topic: String): ConsumerBuilder[S with ToTopic, K, Topic] =
       new ConsumerBuilder(builder.topic(topic))
 
@@ -98,6 +106,9 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind, M <: Subscri
 
 object ConsumerBuilder:
   def apply(client: JPulsarClient): ConsumerBuilder[ConfigPart.Empty, Nothing, Nothing] = new ConsumerBuilder(client.newConsumer)
+
+  val make: ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[ConfigPart.Empty, Nothing, Nothing]] = 
+    ZIO.accessM[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
 
 // trait SubscriptionProperties
 

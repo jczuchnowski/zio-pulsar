@@ -3,43 +3,32 @@ package examples
 import zio._
 import zio.clock._
 import zio.console._
-//import zio.logging._
 import zio.pulsar._
-//import zio.pulsar.SubscriptionProperties.TopicSubscriptionProperties
-import org.apache.pulsar.client.api.PulsarClientException
-//import org.apache.pulsar.client.api.SubscriptionMode
+import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode }
+import RegexSubscriptionMode._
 
 object SingleMessageExample extends App {
 
   def run(args: List[String]): URIO[ZEnv, ExitCode] =
-    app.provideCustomLayer(layer).useNow.exitCode
+    app.provideCustomLayer(pulsarClient).useNow.exitCode
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
-  // val logger =
-  //   Logging.console(
-  //     logLevel = LogLevel.Info,
-  //     format = LogFormat.ColoredLogFormat()
-  //   ) >>> Logging.withRootLoggerName("single-message-example")`
+  val topic = "my-topic"
 
-  val layer = ((Console.live ++ Clock.live)/* >>> logger*/) >+> pulsarClient
-
-  val topic = "my-topic-1"
-
-  val app: ZManaged[PulsarClient/* with Logging*/, PulsarClientException, Unit] =
+  val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for
-      //_ <- log.info("Connect to Pulsar").toManaged_
-      client <- PulsarClient.make.toManaged_
-      c   <- ConsumerBuilder(client)
-               .withSubscription(Subscription("my-subscription", SubscriptionType.Shared))
-               .withReadCompacted
-               .withTopic(topic)
-               .build
-      p <- Producer.make(topic)
-      _ <- p.send("Hello!".getBytes).toManaged_
-      m <- c.receive.toManaged_
-      //_ <- log.info("Received: " + m.getData.map(_.toChar).mkString).toManaged_
-      //_ <- log.info("Finished").toManaged_
+      builder  <- ConsumerBuilder.make.toManaged_
+      consumer <- builder
+                    .withTopic(topic)
+                    .withSubscription(
+                      Subscription(
+                        "my-subscription", 
+                        SubscriptionType.Shared))
+                    .build
+      producer <- Producer.make(topic)
+      _        <- producer.send("Hello!".getBytes).toManaged_
+      m        <- consumer.receive.toManaged_
     yield ()
 
 }
