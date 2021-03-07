@@ -16,9 +16,11 @@ object SingleMessageExample extends App {
 
   val topic = "my-topic"
 
+  import zio.pulsar.given
+
   val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make.toManaged_
+      builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
                     .withTopic(topic)
                     .withSubscription(

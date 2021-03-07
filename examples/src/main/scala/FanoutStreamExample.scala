@@ -26,25 +26,27 @@ object FanoutStreamExample extends App:
 
   val pattern = "dynamic-topic-"
 
+  import zio.pulsar.given
+
   val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for
       sink   <- DynamicProducer.make(bytes => s"$pattern${new String(bytes).toInt%5}").map(_.asSink)
-      stream = Stream.fromIterable(0 to 100).map(i => i.toString.getBytes)
+      stream =  Stream.fromIterable(0 to 100).map(i => i.toString.getBytes)
       _      <- stream.run(sink).toManaged_
     yield ()
 
   val consumer: ZManaged[PulsarClient with Console with Blocking, Throwable, Unit] =
     for
-      client <- PulsarClient.make.toManaged_
-      c   <- ConsumerBuilder(client)
-               .withSubscription(Subscription("my-subscription", SubscriptionType.Exclusive))
-               .withPattern(s"$pattern.*")
-               .build
-      _ <- c.receiveStream.take(10).foreach { a => 
-            putStrLn("Received: (id: " + a.getMessageId.toString + ") " + a.getData().map(_.toChar).mkString) *>
-              c.acknowledge(a.getMessageId())
-            }.toManaged_
-      _ <- putStrLn("Finished").toManaged_
+      builder  <- ConsumerBuilder.make[String].toManaged_
+      consumer <- builder
+                    .withSubscription(Subscription("my-subscription", SubscriptionType.Exclusive))
+                    .withPattern(s"$pattern.*")
+                    .build
+      _        <- consumer.receiveStream.take(10).foreach { a => 
+                    putStrLn("Received: (id: " + a.id.toString + ") " + a.value) *>
+                    consumer.acknowledge(a.id)
+                  }.toManaged_
+      _        <- putStrLn("Finished").toManaged_
     yield ()
 
   val app =

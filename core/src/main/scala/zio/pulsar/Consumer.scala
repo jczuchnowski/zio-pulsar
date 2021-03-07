@@ -1,7 +1,7 @@
 package zio.pulsar
 
 import org.apache.pulsar.client.api.{
-  Message,
+  Message => JMessage,
   MessageId,
   Consumer => JConsumer,
   PulsarClientException,
@@ -13,7 +13,19 @@ import zio.stream._
 
 //import scala.jdk.CollectionConverters._
 
-final class Consumer(val consumer: JConsumer[Array[Byte]]):
+trait Decoder[M]:
+  def decode(m: Array[Byte]): M
+
+given stringDecoder: Decoder[String] with
+  def decode(m: Array[Byte]) = new String(m)
+
+final case class Message[M](id: MessageId, value: M)
+
+object Message:
+  def from[M](m: JMessage[Array[Byte]])(using decoder: Decoder[M]): Message[M] =
+    Message(m.getMessageId, decoder.decode(m.getValue))
+
+final class Consumer[M](val consumer: JConsumer[Array[Byte]])(using decoder: Decoder[M]):
 
   def acknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
     ZIO.effect(consumer.acknowledge(messageId)).refineToOrDie[PulsarClientException]
@@ -21,11 +33,11 @@ final class Consumer(val consumer: JConsumer[Array[Byte]]):
   def negativeAcknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
     ZIO.effect(consumer.negativeAcknowledge(messageId)).refineToOrDie[PulsarClientException]
 
-  val receive: IO[PulsarClientException, Message[Array[Byte]]] =
-    ZIO.fromCompletionStage(consumer.receiveAsync).refineToOrDie[PulsarClientException]
+  val receive: IO[PulsarClientException, Message[M]] =
+    ZIO.fromCompletionStage(consumer.receiveAsync).map(Message.from).refineToOrDie[PulsarClientException]
 
-  val receiveStream: ZStream[Blocking, PulsarClientException, Message[Array[Byte]]] = 
-    ZStream.repeatEffect(effectBlocking(consumer.receive).refineToOrDie[PulsarClientException])
+  val receiveStream: ZStream[Blocking, PulsarClientException, Message[M]] = 
+    ZStream.repeatEffect(effectBlocking(Message.from(consumer.receive)).refineToOrDie[PulsarClientException])
 
 // object Consumer {
 

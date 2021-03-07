@@ -19,6 +19,8 @@ object StreamingExample extends App {
 
   val topic = "my-topic"
 
+  import zio.pulsar.given
+
   val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for
       sink   <- Producer.make(topic).map(_.asSink)
@@ -28,13 +30,13 @@ object StreamingExample extends App {
 
   val consumer: ZManaged[PulsarClient with Blocking, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make.toManaged_
+      builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
                     .withSubscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .withTopic(topic)
                     .build
       _        <- consumer.receiveStream.take(10).foreach { a => 
-                    consumer.acknowledge(a.getMessageId())
+                    consumer.acknowledge(a.id)
                   }.toManaged_
     yield ()
 
