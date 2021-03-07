@@ -24,7 +24,7 @@ object StreamingExample extends App {
   val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for
       sink   <- Producer.make(topic).map(_.asSink)
-      stream =  Stream.fromIterable(0 to 100).map(i => s"Message $i".getBytes())
+      stream =  Stream.fromIterable(0 to 100).map(i => s"Message $i")
       _      <- stream.run(sink).toManaged_
     yield ()
 

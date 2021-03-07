@@ -28,8 +28,8 @@ object SingleMessageExample extends App {
                         "my-subscription", 
                         SubscriptionType.Shared))
                     .build
-      producer <- Producer.make(topic)
-      _        <- producer.send("Hello!".getBytes).toManaged_
+      producer <- Producer.make[String](topic)
+      _        <- producer.send("Hello!").toManaged_
       m        <- consumer.receive.toManaged_
     yield ()
 

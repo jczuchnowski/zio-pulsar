@@ -4,16 +4,22 @@ import org.apache.pulsar.client.api.{ MessageId, Producer => JProducer, PulsarCl
 import zio.{ IO, ZIO, ZManaged }
 import zio.stream.ZSink
 
-final class Producer private (val producer: JProducer[Array[Byte]]):
+trait Encoder[M]:
+  def encode(m: M): Array[Byte]
 
-  def send(message: Array[Byte]): IO[PulsarClientException, MessageId] =
-    ZIO.effect(producer.send(message)).refineToOrDie[PulsarClientException]
+given stringEncoder: Encoder[String] with
+  def encode(m: String) = m.getBytes
+
+final class Producer[M] private (val producer: JProducer[Array[Byte]])(using encoder: Encoder[M]):
+
+  def send(message: M): IO[PulsarClientException, MessageId] =
+    ZIO.effect(producer.send(encoder.encode(message))).refineToOrDie[PulsarClientException]
 
   def asSink = ZSink.foreach(m => send(m))
 
 object Producer:
 
-  def make(topic: String): ZManaged[PulsarClient, PulsarClientException, Producer] =
+  def make[M](topic: String)(using encoder: Encoder[M]): ZManaged[PulsarClient, PulsarClientException, Producer[M]] =
     val producer = PulsarClient.make.flatMap { client =>
       val builder = client.newProducer.topic(topic)
       ZIO.effect(new Producer(builder.create)).refineToOrDie[PulsarClientException]
