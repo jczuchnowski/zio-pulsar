@@ -14,12 +14,6 @@ import zio.stream._
 
 //import scala.jdk.CollectionConverters._
 
-final case class Message[M](id: MessageId, value: M)
-
-object Message:
-  def from[M](m: JMessage[Array[Byte]])(using decoder: Decoder[M]): Message[M] =
-    Message(m.getMessageId, decoder.decode(m.getValue))
-
 final class Consumer[M](val consumer: JConsumer[Array[Byte]])(using decoder: Decoder[M]):
 
   def acknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =

@@ -8,7 +8,7 @@ import zio.pulsar._
 import zio.stm._
 import zio.stream._
 
-import org.apache.pulsar.client.api.{ 
+import org.apache.pulsar.client.api.{
   MessageId, 
   Producer => JProducer, 
   PulsarClient => JPulsarClient, 
