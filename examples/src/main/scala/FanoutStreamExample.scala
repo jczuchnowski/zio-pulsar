@@ -29,7 +29,7 @@ object FanoutStreamExample extends App:
   val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for
       sink   <- DynamicProducer.make(bytes => s"$pattern${new String(bytes).toInt%5}").map(_.asSink)
-      stream = Stream.fromIterable(0 to 100).map(i => s"Message $i".getBytes)
+      stream = Stream.fromIterable(0 to 100).map(i => i.toString.getBytes)
       _      <- stream.run(sink).toManaged_
     yield ()
 
