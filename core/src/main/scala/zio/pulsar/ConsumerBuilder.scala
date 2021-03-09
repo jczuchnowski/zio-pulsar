@@ -12,6 +12,7 @@ import org.apache.pulsar.client.api.{
 }
 import zio.{ ZIO, ZManaged }
 import zio.duration.Duration
+import zio.pulsar.codec.Decoder
 
 case class Subscription[K <: SubscriptionKind](
   name: String, 
@@ -66,7 +67,7 @@ object ConfigPart:
 
   type ConfigComplete = Empty with Subscribed with ToTopic
 
-final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind, M <: SubscriptionMode](builder: JConsumerBuilder[Array[Byte]]):
+final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: SubscriptionMode](builder: JConsumerBuilder[Array[Byte]])(using decoder: Decoder[T]):
   self =>
 
     import ConfigPart._
@@ -74,19 +75,19 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind, M <: Subscri
     import SubscriptionMode._
     import RegexSubscriptionMode._
 
-    def withName(name: String): ConsumerBuilder[S, K, M] =
+    def withName(name: String): ConsumerBuilder[T, S, K, M] =
       new ConsumerBuilder(builder.consumerName(name))
 
-    def withPattern(pattern: String): ConsumerBuilder[S with ToTopic, K, Regex] =
+    def withPattern(pattern: String): ConsumerBuilder[T, S with ToTopic, K, Regex] =
       new ConsumerBuilder(builder.topicsPattern(pattern))
 
-    def withPatternAutoDiscoveryPeriod(minutes: Int)(implicit ev: M =:= Regex): ConsumerBuilder[S, K, M] =
+    def withPatternAutoDiscoveryPeriod(minutes: Int)(implicit ev: M =:= Regex): ConsumerBuilder[T, S, K, M] =
       new ConsumerBuilder(builder.patternAutoDiscoveryPeriod(minutes))
 
-    def withReadCompacted(implicit ev: K =:= SingleConsumerSubscription): ConsumerBuilder[S, K, M] =
+    def withReadCompacted(implicit ev: K =:= SingleConsumerSubscription): ConsumerBuilder[T, S, K, M] =
       new ConsumerBuilder(builder.readCompacted(true))
 
-    def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[S with Subscribed, K1, M] =
+    def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[T, S with Subscribed, K1, M] =
       new ConsumerBuilder(
         subscription.initialPosition
           .fold(builder)(p => builder.subscriptionInitialPosition(p))
@@ -94,20 +95,20 @@ final class ConsumerBuilder[S <: ConfigPart, K <: SubscriptionKind, M <: Subscri
           .subscriptionName(subscription.name)
       )
 
-    def withSubscriptionTopicsMode(mode: RegexSubscriptionMode)(implicit ev: M =:= Regex): ConsumerBuilder[S, K, M] =
+    def withSubscriptionTopicsMode(mode: RegexSubscriptionMode)(implicit ev: M =:= Regex): ConsumerBuilder[T, S, K, M] =
       new ConsumerBuilder(builder.subscriptionTopicsMode(mode))
 
-    def withTopic(topic: String): ConsumerBuilder[S with ToTopic, K, Topic] =
+    def withTopic(topic: String): ConsumerBuilder[T, S with ToTopic, K, Topic] =
       new ConsumerBuilder(builder.topic(topic))
 
-    def build(implicit ev: S =:= ConfigComplete): ZManaged[PulsarClient, PulsarClientException, Consumer] =
+    def build(implicit ev: S =:= ConfigComplete): ZManaged[PulsarClient, PulsarClientException, Consumer[T]] =
       val consumer = ZIO.effect(new Consumer(builder.subscribe)).refineToOrDie[PulsarClientException]
       ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
 
 object ConsumerBuilder:
-  def apply(client: JPulsarClient): ConsumerBuilder[ConfigPart.Empty, Nothing, Nothing] = new ConsumerBuilder(client.newConsumer)
+  //def apply(client: JPulsarClient): ConsumerBuilder[ConfigPart.Empty, Nothing, Nothing] = new ConsumerBuilder(client.newConsumer)
 
-  val make: ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[ConfigPart.Empty, Nothing, Nothing]] = 
+  def make[M](using decoder: Decoder[M]): ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
     ZIO.accessM[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
 
 // trait SubscriptionProperties

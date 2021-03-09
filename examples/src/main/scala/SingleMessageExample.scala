@@ -16,9 +16,11 @@ object SingleMessageExample extends App {
 
   val topic = "my-topic"
 
+  import zio.pulsar.codec.given
+
   val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make.toManaged_
+      builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
                     .withTopic(topic)
                     .withSubscription(
@@ -26,8 +28,8 @@ object SingleMessageExample extends App {
                         "my-subscription", 
                         SubscriptionType.Shared))
                     .build
-      producer <- Producer.make(topic)
-      _        <- producer.send("Hello!".getBytes).toManaged_
+      producer <- Producer.make[String](topic)
+      _        <- producer.send("Hello!").toManaged_
       m        <- consumer.receive.toManaged_
     yield ()
 
