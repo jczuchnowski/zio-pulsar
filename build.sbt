@@ -1,11 +1,11 @@
-val zioVersion = "1.0.4-2"
+val zioVersion = "1.0.5"
 
 inThisBuild(
   List(
     name := "zio-pulsar",
     organization := "zio.pulsar",
     version := "0.0.1",
-    scalaVersion := "3.0.0-M3"
+    scalaVersion := "3.0.0-RC1"
   )
 )
 
@@ -18,7 +18,7 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "dev.zio"           %% "zio"               % zioVersion,
       "dev.zio"           %% "zio-streams"       % zioVersion,
-      "org.apache.pulsar" %  "pulsar-client"     % "2.7.0",
+      "org.apache.pulsar" %  "pulsar-client"     % "2.7.1",
       "dev.zio"           %% "zio-test"          % zioVersion % Test,
       "dev.zio"           %% "zio-test-sbt"      % zioVersion % Test,
       "dev.zio"           %% "zio-test-junit"    % zioVersion % Test,
