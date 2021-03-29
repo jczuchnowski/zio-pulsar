@@ -16,13 +16,13 @@ lazy val core = project
   .in(file("core"))
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio"           %% "zio"               % zioVersion,
-      "dev.zio"           %% "zio-streams"       % zioVersion,
-      "org.apache.pulsar" %  "pulsar-client"     % "2.7.1",
-      "dev.zio"           %% "zio-test"          % zioVersion % Test,
-      "dev.zio"           %% "zio-test-sbt"      % zioVersion % Test,
-      "dev.zio"           %% "zio-test-junit"    % zioVersion % Test,
-      "dev.zio"           %% "zio-test-magnolia" % zioVersion % Test
+      "dev.zio"          %% "zio"               % zioVersion,
+      "dev.zio"          %% "zio-streams"       % zioVersion,
+      "org.apache.pulsar" % "pulsar-client"     % "2.7.1",
+      "dev.zio"          %% "zio-test"          % zioVersion % Test,
+      "dev.zio"          %% "zio-test-sbt"      % zioVersion % Test,
+      "dev.zio"          %% "zio-test-junit"    % zioVersion % Test,
+      "dev.zio"          %% "zio-test-magnolia" % zioVersion % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )
@@ -34,17 +34,17 @@ lazy val examples = project
     moduleName := "examples",
     libraryDependencies ++= Seq(
       //"dev.zio" %% "zio-logging" % "0.5.6",
-      "ch.qos.logback" % "logback-classic" % "1.2.3",
-    ),
+      "ch.qos.logback" % "logback-classic" % "1.2.3"
+    )
   )
   .dependsOn(core)
 
-  lazy val root = project
-    .in(file("."))
-    .settings(
-      skip in publish := true
-    )
-    .aggregate(
-      core,
-      examples,
-    )
+lazy val root = project
+  .in(file("."))
+  .settings(
+    skip in publish := true
+  )
+  .aggregate(
+    core,
+    examples
+  )
