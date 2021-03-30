@@ -32,8 +32,8 @@ object StreamingExample extends App {
     for
       builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
-                    .withSubscription(Subscription("my-subscription", SubscriptionType.Exclusive))
-                    .withTopic(topic)
+                    .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
+                    .topic(topic)
                     .build
       _        <- consumer.receiveStream.take(10).foreach { a => 
                     consumer.acknowledge(a.id)

@@ -22,8 +22,8 @@ object SingleMessageExample extends App {
     for
       builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
-                    .withTopic(topic)
-                    .withSubscription(
+                    .topic(topic)
+                    .subscription(
                       Subscription(
                         "my-subscription", 
                         SubscriptionType.Shared))

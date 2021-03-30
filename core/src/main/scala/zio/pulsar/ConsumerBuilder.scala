@@ -1,16 +1,19 @@
 package zio.pulsar
 
+import java.util.concurrent.TimeUnit
+
 import org.apache.pulsar.client.api.{ 
-  BatchReceivePolicy, 
+  BatchReceivePolicy => JBatchReceivePolicy, 
   ConsumerBuilder => JConsumerBuilder,
-  DeadLetterPolicy, 
+  ConsumerEventListener => JConsumerEventListener,
+  DeadLetterPolicy => JDeadLetterPolicy, 
   KeySharedPolicy,
   PulsarClient => JPulsarClient,
   PulsarClientException,
   RegexSubscriptionMode,
   SubscriptionInitialPosition,
 }
-import zio.{ ZIO, ZManaged }
+import zio.{ Has, ZIO, ZManaged }
 import zio.duration.Duration
 import zio.pulsar.codec.Decoder
 
@@ -75,19 +78,67 @@ final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: Subs
     import SubscriptionMode._
     import RegexSubscriptionMode._
 
-    def withName(name: String): ConsumerBuilder[T, S, K, M] =
+    def acknowledgmentGroupTime(delay: Long, unit: TimeUnit): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.acknowledgmentGroupTime(delay, unit))
+
+    def ackTimeout(ackTimeout: Long, unit: TimeUnit): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.ackTimeout(ackTimeout, unit))
+
+    def ackTimeoutTickTime(tickTime: Long, unit: TimeUnit): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.ackTimeoutTickTime(tickTime, unit))
+
+    def autoAckOldestChunkedMessageOnQueueFull(autoAck: Boolean): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.autoAckOldestChunkedMessageOnQueueFull(autoAck))
+
+    def batchReceivePolicy(policy: JBatchReceivePolicy): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.batchReceivePolicy(policy))
+    
+    def deadLetterPolicy(policy: JDeadLetterPolicy): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.deadLetterPolicy(policy))
+
+    def enableBatchIndexAcknowledgment(batchIndexAcknowledgment: Boolean): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.enableBatchIndexAcknowledgment(batchIndexAcknowledgment))
+
+    def enableRetry(retry: Boolean): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.enableRetry(retry))
+
+    def expireTimeOfIncompleteChunkedMessage(duration: Long, unit: TimeUnit): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.expireTimeOfIncompleteChunkedMessage(duration, unit))
+
+    def maxTotalReceiverQueueSizeAcrossPartitions(maxTotalReceiverQueueSizeAcrossPartitions: Int): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.maxTotalReceiverQueueSizeAcrossPartitions(maxTotalReceiverQueueSizeAcrossPartitions))
+
+    def maxPendingChuckedMessage(max: Int): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.maxPendingChuckedMessage(max))
+
+    def consumerEventListener(consumerEventListener: JConsumerEventListener): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.consumerEventListener(consumerEventListener))
+
+    def consumerName(name: String): ConsumerBuilder[T, S, K, M] =
       new ConsumerBuilder(builder.consumerName(name))
 
-    def withPattern(pattern: String): ConsumerBuilder[T, S with ToTopic, K, Regex] =
+    def negativeAckRedeliveryDelay(redeliveryDelay: Long, unit: TimeUnit): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.negativeAckRedeliveryDelay(redeliveryDelay, unit))
+
+    def pattern(pattern: String): ConsumerBuilder[T, S with ToTopic, K, Regex] =
       new ConsumerBuilder(builder.topicsPattern(pattern))
 
-    def withPatternAutoDiscoveryPeriod(minutes: Int)(implicit ev: M =:= Regex): ConsumerBuilder[T, S, K, M] =
-      new ConsumerBuilder(builder.patternAutoDiscoveryPeriod(minutes))
+    def patternAutoDiscoveryPeriod(interval: Int, unit: TimeUnit)(implicit ev: M =:= Regex): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.patternAutoDiscoveryPeriod(interval, unit))
 
-    def withReadCompacted(implicit ev: K =:= SingleConsumerSubscription): ConsumerBuilder[T, S, K, M] =
+    def priorityLevel(level: Int): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.priorityLevel(level))
+
+    def readCompacted(implicit ev: K =:= SingleConsumerSubscription): ConsumerBuilder[T, S, K, M] =
       new ConsumerBuilder(builder.readCompacted(true))
 
-    def withSubscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[T, S with Subscribed, K1, M] =
+    def receiverQueueSize(receiverQueueSize: Int): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.receiverQueueSize(receiverQueueSize))
+
+    def replicateSubscriptionState(replicateSubscriptionState: Boolean): ConsumerBuilder[T, S, K, M] =
+      new ConsumerBuilder(builder.replicateSubscriptionState(replicateSubscriptionState))
+
+    def subscription[K1 <: SubscriptionKind](subscription: Subscription[K1]): ConsumerBuilder[T, S with Subscribed, K1, M] =
       new ConsumerBuilder(
         subscription.initialPosition
           .fold(builder)(p => builder.subscriptionInitialPosition(p))
@@ -95,10 +146,10 @@ final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: Subs
           .subscriptionName(subscription.name)
       )
 
-    def withSubscriptionTopicsMode(mode: RegexSubscriptionMode)(implicit ev: M =:= Regex): ConsumerBuilder[T, S, K, M] =
+    def subscriptionTopicsMode(mode: RegexSubscriptionMode)(implicit ev: M =:= Regex): ConsumerBuilder[T, S, K, M] =
       new ConsumerBuilder(builder.subscriptionTopicsMode(mode))
 
-    def withTopic(topic: String): ConsumerBuilder[T, S with ToTopic, K, Topic] =
+    def topic(topic: String): ConsumerBuilder[T, S with ToTopic, K, Topic] =
       new ConsumerBuilder(builder.topic(topic))
 
     def build(implicit ev: S =:= ConfigComplete): ZManaged[PulsarClient, PulsarClientException, Consumer[T]] =
@@ -118,30 +169,3 @@ object ConsumerBuilder:
 //   case class PatternSubscriptionProperties(topicsPattern: String, mode: Option[RegexSubscriptionMode] = None, patternAutoDiscoveryPeriod: Option[Int] = None)
 //       extends SubscriptionProperties
 // }
-
-final case class ConsumerConfig(
-  ackTimeout: Duration,
-  ackTimeoutTickTime: Duration,
-  negativeAckRedeliveryDelay: Duration,
-  receiverQueueSize: Int,
-  acknowledgmentGroupTime: Duration,
-  replicateSubscriptionState: Boolean,
-  maxTotalReceiverQueueSizeAcrossPartitions: Int,
-  priorityLevel: Int,
-  properties: Map[String, String],
-  deadLetterPolicy: Option[DeadLetterPolicy],
-  autoUpdatePartitions: Boolean,
-  autoUpdatePartitionsInterval: Duration,
-  batchReceivePolicy: Option[BatchReceivePolicy],
-  enableRetry: Boolean,
-  enableBatchIndexAcknowledgment: Boolean,
-  maxPendingChuckedMessage: Int,
-  autoAckOldestChunkedMessageOnQueueFull: Boolean,
-  expireTimeOfIncompleteChunkedMessage: Duration
-  //startMessageIdInclusive
-  ///intercept
-  //cryptoKeyReader
-  //messageCrypto
-  //cryptoFailureAction
-  //consumerEventListener
-)

@@ -39,8 +39,8 @@ object FanoutStreamExample extends App:
     for
       builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
-                    .withSubscription(Subscription("my-subscription", SubscriptionType.Exclusive))
-                    .withPattern(s"$pattern.*")
+                    .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
+                    .pattern(s"$pattern.*")
                     .build
       _        <- consumer.receiveStream.take(10).foreach { a => 
                     putStrLn("Received: (id: " + a.id.toString + ") " + a.value) *>
