@@ -20,6 +20,7 @@ addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
 lazy val core = project
   .in(file("core"))
   .settings(
+    name := "zio-pulsar",
     libraryDependencies ++= Seq(
       "dev.zio"          %% "zio"               % zioVersion,
       "dev.zio"          %% "zio-streams"       % zioVersion,
