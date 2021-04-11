@@ -1,8 +1,12 @@
 # ZIO Pulsar
 
+| CI | Release | Snapshot |
+| --- | --- | --- |
+| ![CI][Badge-CI] | [![Release Artifacts][badge-releases]][link-releases] | [![Snapshot Artifacts][badge-snapshots]][link-snapshots] |
+
 ## Overview
 
-Purely functional Scala interface to Apache Pulsar.
+Purely functional Scala wrapper over the official Pulsar client.
 
 - Type-safe (utilizes Scala type system to reduce runtime exceptions present in the official Java client)
 - Streaming-enabled (naturally integrates with ZIO Streams)
@@ -21,3 +25,7 @@ docker run -it \
   apachepulsar/pulsar:2.7.0 \
   bin/pulsar standalone
 ```
+
+[Badge-CI]: https://github.com/jczuchnowski/zio-pulsar/actions/workflows/scala.yml/badge.svg
+[link-releases]: https://oss.sonatype.org/content/repositories/releases/com/github/jczuchnowski/zio-pulsar_3.0.0-RC1/ "Sonatype Releases"
+[link-snapshots]: https://oss.sonatype.org/content/repositories/snapshots/com/github/jczuchnowski/zio-pulsar_3.0.0-RC1/ "Sonatype Snapshots"
