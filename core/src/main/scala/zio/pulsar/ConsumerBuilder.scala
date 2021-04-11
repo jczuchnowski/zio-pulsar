@@ -157,15 +157,6 @@ final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: Subs
       ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
 
 object ConsumerBuilder:
-  //def apply(client: JPulsarClient): ConsumerBuilder[ConfigPart.Empty, Nothing, Nothing] = new ConsumerBuilder(client.newConsumer)
 
   def make[M](using decoder: Decoder[M]): ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
     ZIO.accessM[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
-
-// trait SubscriptionProperties
-
-// object SubscriptionProperties {
-//   case class TopicSubscriptionProperties(topics: List[String], mode: Option[SubscriptionMode] = None) extends SubscriptionProperties
-//   case class PatternSubscriptionProperties(topicsPattern: String, mode: Option[RegexSubscriptionMode] = None, patternAutoDiscoveryPeriod: Option[Int] = None)
-//       extends SubscriptionProperties
-// }
