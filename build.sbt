@@ -3,11 +3,16 @@ val zioVersion = "1.0.5"
 inThisBuild(
   List(
     name := "zio-pulsar",
-    organization := "zio.pulsar",
-    version := "0.0.1",
+    organization := "com.github.jczuchnowski",
+    licenses := List("BSD 2-Clause" -> url("https://opensource.org/licenses/BSD-2-Clause")),
+    developers := List(
+      Developer("jczuchnowski", "Jakub Czuchnowski", "jakub.czuchnowski@gmail.com", url("https://github.com/jczuchnowski"))
+    ),
     scalaVersion := "3.0.0-RC1"
   )
 )
+
+ThisBuild / publishTo := sonatypePublishToBundle.value
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
 addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck")
