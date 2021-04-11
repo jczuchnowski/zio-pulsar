@@ -20,6 +20,9 @@ final class Consumer[M](val consumer: JConsumer[Array[Byte]])(using decoder: Dec
     ZIO.effect(consumer.negativeAcknowledge(messageId)).refineToOrDie[PulsarClientException]
 
   val receive: IO[PulsarClientException, Message[M]] =
+    ZIO.effect(consumer.receive).map(Message.from).refineToOrDie[PulsarClientException]
+
+  val receiveAsync: IO[PulsarClientException, Message[M]] =
     ZIO.fromCompletionStage(consumer.receiveAsync).map(Message.from).refineToOrDie[PulsarClientException]
 
   val receiveStream: ZStream[Blocking, PulsarClientException, Message[M]] = 

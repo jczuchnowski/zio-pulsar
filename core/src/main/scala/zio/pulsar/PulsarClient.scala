@@ -5,7 +5,7 @@ import zio._
   
 type PulsarClient = Has[PulsarClient.Service]
 
- object PulsarClient:
+object PulsarClient:
 
   trait Service:
     def client: IO[PulsarClientException, JPulsarClient]
