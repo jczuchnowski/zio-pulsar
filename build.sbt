@@ -2,7 +2,6 @@ val zioVersion = "1.0.5"
 
 inThisBuild(
   List(
-    name := "zio-pulsar",
     organization := "com.github.jczuchnowski",
     licenses := List("BSD 2-Clause" -> url("https://opensource.org/licenses/BSD-2-Clause")),
     developers := List(
@@ -36,7 +35,7 @@ lazy val core = project
 lazy val examples = project
   .in(file("examples"))
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     moduleName := "examples",
     libraryDependencies ++= Seq(
       //"dev.zio" %% "zio-logging" % "0.5.6",
@@ -48,7 +47,7 @@ lazy val examples = project
 lazy val root = project
   .in(file("."))
   .settings(
-    skip in publish := true
+    publish / skip := true
   )
   .aggregate(
     core,
