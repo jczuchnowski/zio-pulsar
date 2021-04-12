@@ -28,14 +28,14 @@ object FanoutStreamExample extends App:
 
   import zio.pulsar.codec.given
 
-  val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
+  val producer: ZManaged[Has[PulsarClient], PulsarClientException, Unit] = 
     for
       sink   <- DynamicProducer.make(bytes => s"$pattern${new String(bytes).toInt%5}").map(_.asSink)
       stream =  Stream.fromIterable(0 to 100).map(i => i.toString.getBytes)
       _      <- stream.run(sink).toManaged_
     yield ()
 
-  val consumer: ZManaged[PulsarClient with Console with Blocking, Throwable, Unit] =
+  val consumer: ZManaged[Has[PulsarClient] with Console with Blocking, Throwable, Unit] =
     for
       builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
@@ -73,7 +73,7 @@ final class DynamicProducer private (val client: JPulsarClient, val f: Array[Byt
 
 object DynamicProducer:
 
-  def make(f: Array[Byte] => String): ZManaged[PulsarClient, PulsarClientException, DynamicProducer] =
+  def make(f: Array[Byte] => String): ZManaged[Has[PulsarClient], PulsarClientException, DynamicProducer] =
     val producer = PulsarClient.make.map { client =>
       DynamicProducer(client, f)
     }

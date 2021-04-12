@@ -8,7 +8,7 @@ import zio.console._
 import zio.pulsar._
 import zio.stream._
 
-object StreamingExample extends App {
+object StreamingExample extends App:
 
   def run(args: List[String]): URIO[ZEnv, ExitCode] =
     app.provideCustomLayer(layer).useNow.exitCode
@@ -21,14 +21,14 @@ object StreamingExample extends App {
 
   import zio.pulsar.codec.given
 
-  val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
+  val producer: ZManaged[Has[PulsarClient], PulsarClientException, Unit] = 
     for
       sink   <- Producer.make(topic).map(_.asSink)
       stream =  Stream.fromIterable(0 to 100).map(i => s"Message $i")
       _      <- stream.run(sink).toManaged_
     yield ()
 
-  val consumer: ZManaged[PulsarClient with Blocking, PulsarClientException, Unit] =
+  val consumer: ZManaged[Has[PulsarClient] with Blocking, PulsarClientException, Unit] =
     for
       builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
@@ -46,4 +46,3 @@ object StreamingExample extends App {
       _ <- producer
       _ <- f.join.toManaged_
     yield ()
-}
