@@ -7,7 +7,7 @@ import zio.pulsar._
 import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode }
 import RegexSubscriptionMode._
 
-object SingleMessageExample extends App {
+object SingleMessageExample extends App:
 
   def run(args: List[String]): URIO[ZEnv, ExitCode] =
     app.provideCustomLayer(pulsarClient).useNow.exitCode
@@ -18,7 +18,7 @@ object SingleMessageExample extends App {
 
   import zio.pulsar.codec.given
 
-  val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
+  val app: ZManaged[Has[PulsarClient], PulsarClientException, Unit] =
     for
       builder  <- ConsumerBuilder.make[String].toManaged_
       consumer <- builder
@@ -32,5 +32,3 @@ object SingleMessageExample extends App {
       _        <- producer.send("Hello!").toManaged_
       m        <- consumer.receive.toManaged_
     yield ()
-
-}

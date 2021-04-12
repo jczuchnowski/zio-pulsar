@@ -152,11 +152,11 @@ final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: Subs
     def topic(topic: String): ConsumerBuilder[T, S with ToTopic, K, Topic] =
       new ConsumerBuilder(builder.topic(topic))
 
-    def build(implicit ev: S =:= ConfigComplete): ZManaged[PulsarClient, PulsarClientException, Consumer[T]] =
+    def build(implicit ev: S =:= ConfigComplete): ZManaged[Has[PulsarClient], PulsarClientException, Consumer[T]] =
       val consumer = ZIO.effect(new Consumer(builder.subscribe)).refineToOrDie[PulsarClientException]
       ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
 
 object ConsumerBuilder:
 
-  def make[M](using decoder: Decoder[M]): ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
-    ZIO.accessM[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
+  def make[M](using decoder: Decoder[M]): ZIO[Has[PulsarClient], PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
+    ZIO.accessM[Has[PulsarClient]](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))

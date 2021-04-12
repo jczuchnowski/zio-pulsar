@@ -1,7 +1,7 @@
 package zio.pulsar
 
 import org.apache.pulsar.client.api.{ MessageId, Producer => JProducer, PulsarClientException }
-import zio.{ IO, ZIO, ZManaged }
+import zio.{ Has, IO, ZIO, ZManaged }
 import zio.pulsar.codec.Encoder
 import zio.stream.{ Sink, ZSink }
 
@@ -19,7 +19,7 @@ final class Producer[M] private (val producer: JProducer[Array[Byte]])(using enc
 
 object Producer:
 
-  def make[M](topic: String)(using encoder: Encoder[M]): ZManaged[PulsarClient, PulsarClientException, Producer[M]] =
+  def make[M](topic: String)(using encoder: Encoder[M]): ZManaged[Has[PulsarClient], PulsarClientException, Producer[M]] =
     val producer = PulsarClient.make.flatMap { client =>
       val builder = client.newProducer.topic(topic)
       ZIO.effect(new Producer(builder.create)).refineToOrDie[PulsarClientException]
