@@ -4,15 +4,21 @@
 | --- | --- | --- |
 | ![CI][Badge-CI] | [![Release Artifacts][badge-releases]][link-releases] | [![Snapshot Artifacts][badge-snapshots]][link-snapshots] |
 
-## Overview
-
 Purely functional Scala wrapper over the official Pulsar client.
 
 - Type-safe (utilizes Scala type system to reduce runtime exceptions present in the official Java client)
 - Streaming-enabled (naturally integrates with ZIO Streams)
 - ZIO integrated (uses common ZIO primitives like ZIO effect and ZManaged to reduce the boilerplate and increase expressiveness)
 
-## Running locally
+## Getting started
+
+Add the following dependency to your `build.sbt` file:
+
+```
+libraryDependencies += "com.github.jczuchnowski" %% "zio-pulsar" % "<version>"
+```
+
+## Running examples locally
 
 To try the examples from the `examples` subproject you'll need a Pulsar instance running locally. You can set one up using docker:
 ```
