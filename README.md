@@ -12,6 +12,8 @@ Purely functional Scala wrapper over the official Pulsar client.
 
 ## Getting started
 
+ZIO Pulsar is written in Scala 3, so you will need at least Scala 2.13.4 to use it (more about [forward compatibility](https://www.scala-lang.org/blog/2020/11/19/scala-3-forward-compat.html))
+
 Add the following dependency to your `build.sbt` file:
 
 ```
