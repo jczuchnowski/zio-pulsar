@@ -18,6 +18,40 @@ Add the following dependency to your `build.sbt` file:
 libraryDependencies += "com.github.jczuchnowski" %% "zio-pulsar" % "<version>"
 ```
 
+Simple example of consumer and producer:
+
+```scala
+import org.apache.pulsar.client.api.PulsarClientException
+import zio._
+import zio.pulsar._
+
+object Main extends App:
+
+  val pulsarClient = PulsarClient.live("localhost", 6650)
+
+  val topic = "my-topic"
+
+  import zio.pulsar.codec.given
+
+  val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
+    for
+      builder  <- ConsumerBuilder.make[String].toManaged_
+      consumer <- builder
+                    .topic(topic)
+                    .subscription(
+                      Subscription(
+                        "my-subscription", 
+                        SubscriptionType.Shared))
+                    .build
+      producer <- Producer.make[String](topic)
+      _        <- producer.send("Hello!").toManaged_
+      m        <- consumer.receive.toManaged_
+    yield ()
+    
+  def run(args: List[String]): URIO[ZEnv, ExitCode] =
+    app.provideCustomLayer(pulsarClient).useNow.exitCode
+```
+
 ## Running examples locally
 
 To try the examples from the `examples` subproject you'll need a Pulsar instance running locally. You can set one up using docker:
