@@ -1,4 +1,4 @@
-val zioVersion = "1.0.5"
+val zioVersion = "1.0.6"
 
 inThisBuild(
   List(
@@ -7,7 +7,7 @@ inThisBuild(
     developers := List(
       Developer("jczuchnowski", "Jakub Czuchnowski", "jakub.czuchnowski@gmail.com", url("https://github.com/jczuchnowski"))
     ),
-    scalaVersion := "3.0.0-RC1"
+    scalaVersion := "3.0.0-RC2"
   )
 )
 
