@@ -21,13 +21,14 @@ lazy val core = project
   .settings(
     name := "zio-pulsar",
     libraryDependencies ++= Seq(
-      "dev.zio"          %% "zio"               % zioVersion,
-      "dev.zio"          %% "zio-streams"       % zioVersion,
-      "org.apache.pulsar" % "pulsar-client"     % "2.7.1",
-      "dev.zio"          %% "zio-test"          % zioVersion % Test,
-      "dev.zio"          %% "zio-test-sbt"      % zioVersion % Test,
-      "dev.zio"          %% "zio-test-junit"    % zioVersion % Test,
-      "dev.zio"          %% "zio-test-magnolia" % zioVersion % Test
+      "dev.zio"           % "zio_2.13"               % zioVersion % Provided,
+      "dev.zio"           % "zio-streams_2.13"       % zioVersion % Provided,
+      "dev.zio"           % "zio-json_2.13"          % "0.1.4"  % Provided,
+      "org.apache.pulsar" % "pulsar-client"          % "2.7.1",
+      "dev.zio"           % "zio-test_2.13"          % zioVersion % Test,
+      "dev.zio"           % "zio-test-sbt_2.13"      % zioVersion % Test,
+      "dev.zio"           % "zio-test-junit_2.13"    % zioVersion % Test,
+      "dev.zio"           % "zio-test-magnolia_2.13" % zioVersion % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )
