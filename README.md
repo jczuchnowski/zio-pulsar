@@ -23,7 +23,7 @@ libraryDependencies += "com.github.jczuchnowski" %% "zio-pulsar" % "<version>"
 Simple example of consumer and producer:
 
 ```scala
-import org.apache.pulsar.client.api.PulsarClientException
+import org.apache.pulsar.client.api.{ PulsarClientException, Schema }
 import zio._
 import zio.pulsar._
 
@@ -33,11 +33,9 @@ object Main extends App:
 
   val topic = "my-topic"
 
-  import zio.pulsar.codec.given
-
   val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make[String].toManaged_
+      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
       consumer <- builder
                     .topic(topic)
                     .subscription(
@@ -45,7 +43,7 @@ object Main extends App:
                         "my-subscription", 
                         SubscriptionType.Shared))
                     .build
-      producer <- Producer.make[String](topic)
+      producer <- Producer.make(topic, Schema.STRING)
       _        <- producer.send("Hello!").toManaged_
       m        <- consumer.receive.toManaged_
     yield ()
