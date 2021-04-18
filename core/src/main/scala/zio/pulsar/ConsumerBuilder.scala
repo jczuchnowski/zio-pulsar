@@ -11,11 +11,11 @@ import org.apache.pulsar.client.api.{
   PulsarClient => JPulsarClient,
   PulsarClientException,
   RegexSubscriptionMode,
+  Schema,
   SubscriptionInitialPosition,
 }
 import zio.{ Has, ZIO, ZManaged }
 import zio.duration.Duration
-import zio.pulsar.codec.Decoder
 
 case class Subscription[K <: SubscriptionKind](
   name: String, 
@@ -70,7 +70,7 @@ object ConfigPart:
 
   type ConfigComplete = Empty with Subscribed with ToTopic
 
-final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: SubscriptionMode](builder: JConsumerBuilder[Array[Byte]])(using decoder: Decoder[T]):
+final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: SubscriptionMode](builder: JConsumerBuilder[T]):
   self =>
 
     import ConfigPart._
@@ -158,5 +158,8 @@ final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: Subs
 
 object ConsumerBuilder:
 
-  def make[M](using decoder: Decoder[M]): ZIO[Has[PulsarClient], PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
+  val make: ZIO[Has[PulsarClient], PulsarClientException, ConsumerBuilder[Array[Byte], ConfigPart.Empty, Nothing, Nothing]] = 
     ZIO.accessM[Has[PulsarClient]](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
+
+  def make[M](schema: Schema[M]): ZIO[Has[PulsarClient], PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
+    ZIO.accessM[Has[PulsarClient]](_.get.client).map(c => new ConsumerBuilder(c.newConsumer(schema)))
