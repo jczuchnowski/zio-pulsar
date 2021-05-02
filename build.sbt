@@ -11,8 +11,6 @@ inThisBuild(
   )
 )
 
-ThisBuild / publishTo := sonatypePublishToBundle.value
-
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
 addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck")
 
@@ -21,8 +19,8 @@ lazy val core = project
   .settings(
     name := "zio-pulsar",
     libraryDependencies ++= Seq(
-      "dev.zio"          %% "zio"               % zioVersion,
-      "dev.zio"          %% "zio-streams"       % zioVersion,
+      "dev.zio"          %% "zio"               % zioVersion % Provided,
+      "dev.zio"          %% "zio-streams"       % zioVersion % Provided,
       "org.apache.pulsar" % "pulsar-client"     % "2.7.1",
       "dev.zio"          %% "zio-test"          % zioVersion % Test,
       "dev.zio"          %% "zio-test-sbt"      % zioVersion % Test,
@@ -39,6 +37,8 @@ lazy val examples = project
     moduleName := "examples",
     libraryDependencies ++= Seq(
       //"dev.zio" %% "zio-logging" % "0.5.6",
+      "dev.zio"        %% "zio"            % zioVersion,
+      "dev.zio"        %% "zio-streams"    % zioVersion,
       "ch.qos.logback" % "logback-classic" % "1.2.3"
     )
   )
