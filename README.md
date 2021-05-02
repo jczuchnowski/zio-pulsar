@@ -12,12 +12,21 @@ Purely functional Scala wrapper over the official Pulsar client.
 
 ## Getting started
 
-ZIO Pulsar is written in Scala 3, so you will need at least Scala 2.13.4 to use it (more about [forward compatibility](https://www.scala-lang.org/blog/2020/11/19/scala-3-forward-compat.html))
+⚠️ ZIO Pulsar is written in Scala 3 and will work with Scala 3, but the current Scala 3 release (3.0.0-RC3) uses TASTy format in version incompatible with any Scala 2.13 realease. So you will need to wait for a new Scala 2.13 to be able to use the [forward compatibility](https://www.scala-lang.org/blog/2020/11/19/scala-3-forward-compat.html) feature.
 
 Add the following dependency to your `build.sbt` file:
 
 ```
 libraryDependencies += "com.github.jczuchnowski" %% "zio-pulsar" % "<version>"
+```
+
+ZIO Pulsar depents on ZIO and ZIO Streams, so make sure you have these dependencies, because ZIO Pulsar will not pull them itself:
+
+```
+libraryDependencies ++= Seq(
+  "dev.zio" %% "zio"         % zioVersion,
+  "dev.zio" %% "zio-streams" % zioVersion
+)
 ```
 
 Simple example of consumer and producer:
