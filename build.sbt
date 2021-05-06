@@ -3,6 +3,7 @@ val zioVersion = "1.0.7"
 inThisBuild(
   List(
     organization := "com.github.jczuchnowski",
+    homepage := Some(url("https://github.com/jczuchnowski/zio-pulsar/")),
     licenses := List("BSD 2-Clause" -> url("https://opensource.org/licenses/BSD-2-Clause")),
     developers := List(
       Developer("jczuchnowski", "Jakub Czuchnowski", "jakub.czuchnowski@gmail.com", url("https://github.com/jczuchnowski"))
