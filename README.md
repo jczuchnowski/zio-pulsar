@@ -76,7 +76,7 @@ docker run -it \
 ```
 
 [Badge-CI]: https://github.com/jczuchnowski/zio-pulsar/actions/workflows/scala.yml/badge.svg
-[badge-releases]: https://img.shields.io/nexus/r/https/oss.sonatype.org/com.github.jczuchnowski/zio-pulsar_3.0.0-RC3 "Sonatype Releases"
-[badge-snapshots]: https://img.shields.io/nexus/s/https/oss.sonatype.org/com.github.jczuchnowski/zio-pulsar_3.0.0-RC3 "Sonatype Snapshots"
-[link-releases]: https://oss.sonatype.org/content/repositories/releases/com/github/jczuchnowski/zio-pulsar_3.0.0-RC3/ "Sonatype Releases"
-[link-snapshots]: https://oss.sonatype.org/content/repositories/snapshots/com/github/jczuchnowski/zio-pulsar_3.0.0-RC3/ "Sonatype Snapshots"
+[badge-releases]: https://img.shields.io/nexus/r/https/oss.sonatype.org/io.scalac/mesmer-akka-extension_2.13 "Sonatype Releases"
+[badge-snapshots]: https://img.shields.io/nexus/s/https/oss.sonatype.org/io.scalac/mesmer-akka-extension_2.13 "Sonatype Snapshots"
+[link-releases]: https://oss.sonatype.org/content/repositories/releases/io/scalac/mesmer-akka-extension_2.13/ "Sonatype Releases"
+[link-snapshots]: https://oss.sonatype.org/content/repositories/snapshots/io/scalac/mesmer-akka-extension_2.13/ "Sonatype Snapshots"
