@@ -25,7 +25,8 @@ libraryDependencies += "com.github.jczuchnowski" %% "zio-pulsar" % zioPulsarVers
 
 Scala 2.13.6+ (sbt 1.5.x)
 ```
-libraryDependencies += ("com.github.jczuchnowski" %% "zio-pulsar" % zioPulsarVersion).cross(CrossVersion.for2_13Use3)
+libraryDependencies += 
+  ("com.github.jczuchnowski" %% "zio-pulsar" % zioPulsarVersion).cross(CrossVersion.for2_13Use3)
 ```
 
 ZIO Pulsar also needs ZIO and ZIO Streams to be provided:
