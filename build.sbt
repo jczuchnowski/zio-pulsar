@@ -40,7 +40,7 @@ lazy val examples = project
       //"dev.zio" %% "zio-logging" % "0.5.6",
       "dev.zio"        %% "zio"            % zioVersion,
       "dev.zio"        %% "zio-streams"    % zioVersion,
-      "ch.qos.logback" % "logback-classic" % "1.2.3"
+      "ch.qos.logback" % "logback-classic" % "1.2.5"
     )
   )
   .dependsOn(core)
