@@ -12,7 +12,8 @@ import org.apache.pulsar.client.api.{
   MessageId, 
   Producer => JProducer, 
   PulsarClient => JPulsarClient, 
-  PulsarClientException
+  PulsarClientException,
+  Schema
 }
 
 object FanoutStreamExample extends App:
@@ -26,8 +27,6 @@ object FanoutStreamExample extends App:
 
   val pattern = "dynamic-topic-"
 
-  import zio.pulsar.codec.given
-
   val producer: ZManaged[Has[PulsarClient], PulsarClientException, Unit] = 
     for
       sink   <- DynamicProducer.make(bytes => s"$pattern${new String(bytes).toInt%5}").map(_.asSink)
@@ -37,14 +36,14 @@ object FanoutStreamExample extends App:
 
   val consumer: ZManaged[Has[PulsarClient] with Console with Blocking, Throwable, Unit] =
     for
-      builder  <- ConsumerBuilder.make[String].toManaged_
+      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
       consumer <- builder
                     .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .pattern(s"$pattern.*")
                     .build
       _        <- consumer.receiveStream.take(10).foreach { a => 
-                    putStrLn("Received: (id: " + a.id.toString + ") " + a.value) *>
-                    consumer.acknowledge(a.id)
+                    putStrLn("Received: (id: " + a.getMessageId + ") " + a.getValue) *>
+                    consumer.acknowledge(a.getMessageId)
                   }.toManaged_
       _        <- putStrLn("Finished").toManaged_
     yield ()

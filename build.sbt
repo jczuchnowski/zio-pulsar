@@ -1,17 +1,16 @@
-val zioVersion = "1.0.6"
+val zioVersion = "1.0.8"
 
 inThisBuild(
   List(
     organization := "com.github.jczuchnowski",
+    homepage := Some(url("https://github.com/jczuchnowski/zio-pulsar/")),
     licenses := List("BSD 2-Clause" -> url("https://opensource.org/licenses/BSD-2-Clause")),
     developers := List(
       Developer("jczuchnowski", "Jakub Czuchnowski", "jakub.czuchnowski@gmail.com", url("https://github.com/jczuchnowski"))
     ),
-    scalaVersion := "3.0.0-RC2"
+    scalaVersion := "3.0.0"
   )
 )
-
-ThisBuild / publishTo := sonatypePublishToBundle.value
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
 addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck")
@@ -21,14 +20,14 @@ lazy val core = project
   .settings(
     name := "zio-pulsar",
     libraryDependencies ++= Seq(
-      "dev.zio"           % "zio_2.13"               % zioVersion % Provided,
-      "dev.zio"           % "zio-streams_2.13"       % zioVersion % Provided,
-      "dev.zio"           % "zio-json_2.13"          % "0.1.4"  % Provided,
-      "org.apache.pulsar" % "pulsar-client"          % "2.7.1",
-      "dev.zio"           % "zio-test_2.13"          % zioVersion % Test,
-      "dev.zio"           % "zio-test-sbt_2.13"      % zioVersion % Test,
-      "dev.zio"           % "zio-test-junit_2.13"    % zioVersion % Test,
-      "dev.zio"           % "zio-test-magnolia_2.13" % zioVersion % Test
+      "dev.zio"          %% "zio"               % zioVersion % Provided,
+      "dev.zio"          %% "zio-streams"       % zioVersion % Provided,
+      "dev.zio"           % "zio-json_2.13"     % "0.1.4"    % Provided,
+      "org.apache.pulsar" % "pulsar-client"     % "2.7.2",
+      "dev.zio"          %% "zio-test"          % zioVersion % Test,
+      "dev.zio"          %% "zio-test-sbt"      % zioVersion % Test,
+      "dev.zio"          %% "zio-test-junit"    % zioVersion % Test,
+      "dev.zio"          %% "zio-test-magnolia" % zioVersion % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )
@@ -40,6 +39,8 @@ lazy val examples = project
     moduleName := "examples",
     libraryDependencies ++= Seq(
       //"dev.zio" %% "zio-logging" % "0.5.6",
+      "dev.zio"        %% "zio"            % zioVersion,
+      "dev.zio"        %% "zio-streams"    % zioVersion,
       "ch.qos.logback" % "logback-classic" % "1.2.3"
     )
   )

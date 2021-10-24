@@ -4,7 +4,7 @@ import zio._
 import zio.clock._
 import zio.console._
 import zio.pulsar._
-import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode }
+import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema }
 import RegexSubscriptionMode._
 
 object SingleMessageExample extends App:
@@ -16,11 +16,9 @@ object SingleMessageExample extends App:
 
   val topic = "my-topic"
 
-  import zio.pulsar.codec.given
-
   val app: ZManaged[Has[PulsarClient], PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make[String].toManaged_
+      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
       consumer <- builder
                     .topic(topic)
                     .subscription(
@@ -28,7 +26,7 @@ object SingleMessageExample extends App:
                         "my-subscription", 
                         SubscriptionType.Shared))
                     .build
-      producer <- Producer.make[String](topic)
+      producer <- Producer.make(topic, Schema.STRING)
       _        <- producer.send("Hello!").toManaged_
       m        <- consumer.receive.toManaged_
     yield ()

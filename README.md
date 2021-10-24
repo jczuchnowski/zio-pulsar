@@ -10,12 +10,64 @@ Purely functional Scala wrapper over the official Pulsar client.
 - Streaming-enabled (naturally integrates with ZIO Streams)
 - ZIO integrated (uses common ZIO primitives like ZIO effect and ZManaged to reduce the boilerplate and increase expressiveness)
 
+## Compatibility
+
+ZIO Pulsar is a Scala 3 library, so it's compatible with Scala 3 applications as well as Scala 2.13.6+ (see [forward compatibility](https://www.scala-lang.org/blog/2020/11/19/scala-3-forward-compat.html) for more information.
+
 ## Getting started
 
 Add the following dependency to your `build.sbt` file:
 
+Scala 3
 ```
-libraryDependencies += "com.github.jczuchnowski" %% "zio-pulsar" % "<version>"
+libraryDependencies += "com.github.jczuchnowski" %% "zio-pulsar" % zioPulsarVersion
+```
+
+Scala 2.13.6+ (sbt 1.5.x)
+```
+libraryDependencies += 
+  ("com.github.jczuchnowski" %% "zio-pulsar" % zioPulsarVersion).cross(CrossVersion.for2_13Use3)
+```
+
+ZIO Pulsar also needs ZIO and ZIO Streams to be provided:
+
+```
+libraryDependencies ++= Seq(
+  "dev.zio" %% "zio"         % zioVersion,
+  "dev.zio" %% "zio-streams" % zioVersion
+)
+```
+
+Simple example of consumer and producer:
+
+```scala
+import org.apache.pulsar.client.api.{ PulsarClientException, Schema }
+import zio._
+import zio.pulsar._
+
+object Main extends App:
+
+  val pulsarClient = PulsarClient.live("localhost", 6650)
+
+  val topic = "my-topic"
+
+  val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
+    for
+      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
+      consumer <- builder
+                    .topic(topic)
+                    .subscription(
+                      Subscription(
+                        "my-subscription", 
+                        SubscriptionType.Shared))
+                    .build
+      producer <- Producer.make(topic, Schema.STRING)
+      _        <- producer.send("Hello!").toManaged_
+      m        <- consumer.receive.toManaged_
+    yield ()
+    
+  def run(args: List[String]): URIO[ZEnv, ExitCode] =
+    app.provideCustomLayer(pulsarClient).useNow.exitCode
 ```
 
 ## Running examples locally
@@ -33,7 +85,7 @@ docker run -it \
 ```
 
 [Badge-CI]: https://github.com/jczuchnowski/zio-pulsar/actions/workflows/scala.yml/badge.svg
-[badge-releases]: https://img.shields.io/nexus/r/https/oss.sonatype.org/com.github.jczuchnowski/zio-pulsar_3.0.0-RC1 "Sonatype Releases"
-[badge-snapshots]: https://img.shields.io/nexus/s/https/oss.sonatype.org/com.github.jczuchnowski/zio-pulsar_3.0.0-RC1 "Sonatype Snapshots"
-[link-releases]: https://oss.sonatype.org/content/repositories/releases/com/github/jczuchnowski/zio-pulsar_3.0.0-RC1/ "Sonatype Releases"
-[link-snapshots]: https://oss.sonatype.org/content/repositories/snapshots/com/github/jczuchnowski/zio-pulsar_3.0.0-RC1/ "Sonatype Snapshots"
+[badge-releases]: https://img.shields.io/nexus/r/https/oss.sonatype.org/com.github.jczuchnowski/zio-pulsar_3 "Sonatype Releases"
+[badge-snapshots]: https://img.shields.io/nexus/s/https/oss.sonatype.org/com.github.jczuchnowski/zio-pulsar_3 "Sonatype Snapshots"
+[link-releases]: https://oss.sonatype.org/content/repositories/releases/com/github/jczuchnowski/zio-pulsar_3/ "Sonatype Releases"
+[link-snapshots]: https://oss.sonatype.org/content/repositories/snapshots/com/github/jczuchnowski/zio-pulsar_3/ "Sonatype Snapshots"
