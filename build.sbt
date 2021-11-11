@@ -6,7 +6,12 @@ inThisBuild(
     homepage := Some(url("https://github.com/jczuchnowski/zio-pulsar/")),
     licenses := List("BSD 2-Clause" -> url("https://opensource.org/licenses/BSD-2-Clause")),
     developers := List(
-      Developer("jczuchnowski", "Jakub Czuchnowski", "jakub.czuchnowski@gmail.com", url("https://github.com/jczuchnowski"))
+      Developer(
+        "jczuchnowski",
+        "Jakub Czuchnowski",
+        "jakub.czuchnowski@gmail.com",
+        url("https://github.com/jczuchnowski")
+      )
     ),
     scalaVersion := "3.0.0"
   )
@@ -38,9 +43,9 @@ lazy val examples = project
     moduleName := "examples",
     libraryDependencies ++= Seq(
       //"dev.zio" %% "zio-logging" % "0.5.6",
-      "dev.zio"        %% "zio"            % zioVersion,
-      "dev.zio"        %% "zio-streams"    % zioVersion,
-      "ch.qos.logback" % "logback-classic" % "1.2.3"
+      "dev.zio"       %% "zio"             % zioVersion,
+      "dev.zio"       %% "zio-streams"     % zioVersion,
+      "ch.qos.logback" % "logback-classic" % "1.2.7"
     )
   )
   .dependsOn(core)
