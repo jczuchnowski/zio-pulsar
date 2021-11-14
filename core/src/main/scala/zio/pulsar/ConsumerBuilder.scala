@@ -14,8 +14,7 @@ import org.apache.pulsar.client.api.{
   Schema,
   SubscriptionInitialPosition,
 }
-import zio.{ Has, ZIO, ZManaged }
-import zio.duration.Duration
+import zio.{ Duration, Has, ZIO, ZManaged }
 
 case class Subscription[K <: SubscriptionKind](
   name: String, 

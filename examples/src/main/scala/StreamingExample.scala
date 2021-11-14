@@ -2,9 +2,6 @@ package examples
 
 import org.apache.pulsar.client.api.{ PulsarClientException, Schema }
 import zio._
-import zio.blocking._
-import zio.clock._
-import zio.console._
 import zio.pulsar._
 import zio.stream._
 
@@ -26,7 +23,7 @@ object StreamingExample extends App:
       _      <- stream.run(sink).toManaged_
     yield ()
 
-  val consumer: ZManaged[Has[PulsarClient] with Blocking, PulsarClientException, Unit] =
+  val consumer: ZManaged[Has[PulsarClient], PulsarClientException, Unit] =
     for
       builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
       consumer <- builder

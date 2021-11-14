@@ -1,9 +1,6 @@
 package examples
 
 import zio._
-import zio.blocking._
-import zio.clock._
-import zio.console._
 import zio.pulsar._
 import zio.stm._
 import zio.stream._
@@ -34,7 +31,7 @@ object FanoutStreamExample extends App:
       _      <- stream.run(sink).toManaged_
     yield ()
 
-  val consumer: ZManaged[Has[PulsarClient] with Console with Blocking, Throwable, Unit] =
+  val consumer: ZManaged[Has[PulsarClient] with Has[Console], Throwable, Unit] =
     for
       builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
       consumer <- builder
@@ -42,10 +39,10 @@ object FanoutStreamExample extends App:
                     .pattern(s"$pattern.*")
                     .build
       _        <- consumer.receiveStream.take(10).foreach { a => 
-                    putStrLn("Received: (id: " + a.getMessageId + ") " + a.getValue) *>
+                    Console.putStrLn("Received: (id: " + a.getMessageId + ") " + a.getValue) *>
                     consumer.acknowledge(a.getMessageId)
                   }.toManaged_
-      _        <- putStrLn("Finished").toManaged_
+      _        <- Console.putStrLn("Finished").toManaged_
     yield ()
 
   val app =

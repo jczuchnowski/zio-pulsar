@@ -1,8 +1,6 @@
 package examples
 
 import zio._
-import zio.clock._
-import zio.console._
 import zio.pulsar._
 import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema }
 import RegexSubscriptionMode._

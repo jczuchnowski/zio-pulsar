@@ -7,7 +7,7 @@ import org.apache.pulsar.client.api.{
   PulsarClientException,
 }
 import zio.{ IO, ZIO }
-import zio.blocking._
+//import zio.blocking._
 import zio.stream._
 
 final class Consumer[M](val consumer: JConsumer[M]):
@@ -24,5 +24,5 @@ final class Consumer[M](val consumer: JConsumer[M]):
   val receiveAsync: IO[PulsarClientException, Message[M]] =
     ZIO.fromCompletionStage(consumer.receiveAsync).refineToOrDie[PulsarClientException]
 
-  val receiveStream: ZStream[Blocking, PulsarClientException, Message[M]] = 
-    ZStream.repeatEffect(effectBlocking(consumer.receive).refineToOrDie[PulsarClientException])
+  val receiveStream: Stream[PulsarClientException, Message[M]] = 
+    ZStream.repeatEffect(ZIO.attemptBlocking(consumer.receive).refineToOrDie[PulsarClientException])
