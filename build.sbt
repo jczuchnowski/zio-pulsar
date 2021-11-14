@@ -27,7 +27,7 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "dev.zio"          %% "zio"               % zioVersion % Provided,
       "dev.zio"          %% "zio-streams"       % zioVersion % Provided,
-      "org.apache.pulsar" % "pulsar-client"     % "2.7.2",
+      "org.apache.pulsar" % "pulsar-client"     % "2.8.1",
       "dev.zio"          %% "zio-test"          % zioVersion % Test,
       "dev.zio"          %% "zio-test-sbt"      % zioVersion % Test,
       "dev.zio"          %% "zio-test-junit"    % zioVersion % Test,
