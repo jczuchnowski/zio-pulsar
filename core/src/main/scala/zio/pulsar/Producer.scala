@@ -12,9 +12,9 @@ final class Producer[M] private (val producer: JProducer[M]):
   def sendAsync(message: M): IO[PulsarClientException, MessageId] =
     ZIO.fromCompletionStage(producer.sendAsync(message)).refineToOrDie[PulsarClientException]
 
-  def asSink: Sink[PulsarClientException, M, M, Unit] = ZSink.foreach(m => send(m))
+  def asSink: Sink[PulsarClientException, M, PulsarClientException, M, Unit] = ZSink.foreach(m => send(m))
 
-  def asSinkAsync: Sink[PulsarClientException, M, M, Unit] = ZSink.foreach(m => sendAsync(m))
+  def asSinkAsync: Sink[PulsarClientException, M, PulsarClientException, M, Unit] = ZSink.foreach(m => sendAsync(m))
 
 object Producer:
 
