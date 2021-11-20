@@ -1,4 +1,4 @@
-val zioVersion = "2.0.0-M5"
+val zioVersion = "2.0.0-M6-2"
 
 inThisBuild(
   List(
