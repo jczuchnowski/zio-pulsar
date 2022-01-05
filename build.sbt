@@ -1,4 +1,4 @@
-val zioVersion = "1.0.12"
+val zioVersion = "2.0.0-RC1"
 
 inThisBuild(
   List(
@@ -6,9 +6,14 @@ inThisBuild(
     homepage := Some(url("https://github.com/jczuchnowski/zio-pulsar/")),
     licenses := List("BSD 2-Clause" -> url("https://opensource.org/licenses/BSD-2-Clause")),
     developers := List(
-      Developer("jczuchnowski", "Jakub Czuchnowski", "jakub.czuchnowski@gmail.com", url("https://github.com/jczuchnowski"))
+      Developer(
+        "jczuchnowski",
+        "Jakub Czuchnowski",
+        "jakub.czuchnowski@gmail.com",
+        url("https://github.com/jczuchnowski")
+      )
     ),
-    scalaVersion := "3.0.2"
+    scalaVersion := "3.1.0"
   )
 )
 
@@ -22,7 +27,7 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "dev.zio"          %% "zio"               % zioVersion % Provided,
       "dev.zio"          %% "zio-streams"       % zioVersion % Provided,
-      "dev.zio"          %% "zio-json"          % "0.2.0-M1" % Provided,
+      "dev.zio"          %% "zio-json"          % "0.3.0-RC1-1" % Provided,
       "org.apache.pulsar" % "pulsar-client"     % "2.8.1",
       "dev.zio"          %% "zio-test"          % zioVersion % Test,
       "dev.zio"          %% "zio-test-sbt"      % zioVersion % Test,
@@ -39,9 +44,9 @@ lazy val examples = project
     moduleName := "examples",
     libraryDependencies ++= Seq(
       //"dev.zio" %% "zio-logging" % "0.5.6",
-      "dev.zio"        %% "zio"            % zioVersion,
-      "dev.zio"        %% "zio-streams"    % zioVersion,
-      "ch.qos.logback" % "logback-classic" % "1.2.3"
+      "dev.zio"       %% "zio"             % zioVersion,
+      "dev.zio"       %% "zio-streams"     % zioVersion,
+      "ch.qos.logback" % "logback-classic" % "1.2.7"
     )
   )
   .dependsOn(core)

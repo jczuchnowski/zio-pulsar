@@ -1,8 +1,6 @@
 package examples
 
 import zio._
-import zio.clock._
-import zio.console._
 import zio.pulsar._
 import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema }
 import RegexSubscriptionMode._
@@ -16,7 +14,7 @@ object SingleMessageExample extends App:
 
   val topic = "my-topic"
 
-  val app: ZManaged[Has[PulsarClient], PulsarClientException, Unit] =
+  val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for
       builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
       consumer <- builder
