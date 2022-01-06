@@ -9,7 +9,7 @@ import zio.json._
 import org.apache.pulsar.client.impl.schema.SchemaInfoImpl
 //import zio.pulsar.codec._
 
-given jsonSchema[T: Manifest](using encoder: JsonEncoder[T], decoder: JsonDecoder[T]): Schema[T] with
+given jsonSchema[T](using encoder: JsonEncoder[T], decoder: JsonDecoder[T]): Schema[T] with
   
   override def clone(): Schema[T] = this
   

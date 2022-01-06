@@ -160,5 +160,5 @@ object ConsumerBuilder:
   val make: ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[Array[Byte], ConfigPart.Empty, Nothing, Nothing]] = 
     ZIO.accessM[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
 
-  def make[M](schema: Schema[M]): ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
+  def make[M](using schema: Schema[M]): ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
     ZIO.accessM[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer(schema)))

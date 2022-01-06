@@ -25,7 +25,7 @@ object Producer:
     }
     ZManaged.make(producer)(p => ZIO.effect(p.producer.close).orDie)
 
-  def make[M](topic: String, schema: Schema[M]): ZManaged[PulsarClient, PulsarClientException, Producer[M]] =
+  def make[M](topic: String)(using schema: Schema[M]): ZManaged[PulsarClient, PulsarClientException, Producer[M]] =
     val producer = PulsarClient.make.flatMap { client =>
       val builder = client.newProducer(schema).topic(topic)
       ZIO.effect(new Producer(builder.create)).refineToOrDie[PulsarClientException]
