@@ -25,14 +25,15 @@ lazy val core = project
   .settings(
     name := "zio-pulsar",
     libraryDependencies ++= Seq(
-      "dev.zio"          %% "zio"               % zioVersion % Provided,
-      "dev.zio"          %% "zio-streams"       % zioVersion % Provided,
-      "dev.zio"          %% "zio-json"          % "0.3.0-RC1-1" % Provided,
-      "org.apache.pulsar" % "pulsar-client"     % "2.8.1",
-      "dev.zio"          %% "zio-test"          % zioVersion % Test,
-      "dev.zio"          %% "zio-test-sbt"      % zioVersion % Test,
-      "dev.zio"          %% "zio-test-junit"    % zioVersion % Test,
-      "dev.zio"          %% "zio-test-magnolia" % zioVersion % Test
+      "dev.zio"             %% "zio"               % zioVersion % Provided,
+      "dev.zio"             %% "zio-streams"       % zioVersion % Provided,
+      "dev.zio"             %% "zio-json"          % "0.3.0-RC1-1" % Provided,
+      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1", 
+      "org.apache.pulsar"    % "pulsar-client"     % "2.9.1",
+      "dev.zio"             %% "zio-test"          % zioVersion % Test,
+      "dev.zio"             %% "zio-test-sbt"      % zioVersion % Test,
+      "dev.zio"             %% "zio-test-junit"    % zioVersion % Test,
+      "dev.zio"             %% "zio-test-magnolia" % zioVersion % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )
@@ -46,6 +47,8 @@ lazy val examples = project
       //"dev.zio" %% "zio-logging" % "0.5.6",
       "dev.zio"       %% "zio"             % zioVersion,
       "dev.zio"       %% "zio-streams"     % zioVersion,
+      "dev.zio"             %% "zio-json"          % "0.3.0-RC1-1",
+      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1",
       "ch.qos.logback" % "logback-classic" % "1.2.7"
     )
   )

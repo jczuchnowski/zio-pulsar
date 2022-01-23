@@ -2,14 +2,13 @@ package zio.pulsar.json
 
 import java.nio.charset.StandardCharsets
 
+import com.sksamuel.avro4s.{ AvroSchema, SchemaFor }
 import org.apache.pulsar.client.api.Schema
-import org.apache.pulsar.client.impl.schema.SchemaInfoImpl
+import org.apache.pulsar.client.impl.schema.{ JSONSchema, SchemaInfoImpl }
 import org.apache.pulsar.common.schema.{ SchemaInfo, SchemaType }
 import zio.json._
-import org.apache.pulsar.client.impl.schema.SchemaInfoImpl
-//import zio.pulsar.codec._
 
-given jsonSchema[T](using encoder: JsonEncoder[T], decoder: JsonDecoder[T]): Schema[T] with
+given jsonSchema[T](using codec: JsonCodec[T], avroSchema: SchemaFor[T], manifest: Manifest[T]): Schema[T] with
   
   override def clone(): Schema[T] = this
   
@@ -20,10 +19,12 @@ given jsonSchema[T](using encoder: JsonEncoder[T], decoder: JsonDecoder[T]): Sch
       .fromJson[T]
       .fold(s => throw new RuntimeException(s), identity)
   
+  val s = AvroSchema[T](using avroSchema)
+
   override def getSchemaInfo: SchemaInfo =
     SchemaInfoImpl.builder
-      .name(manifest[T].runtimeClass.getCanonicalName)
+      .name(manifest.runtimeClass.getCanonicalName)
       .`type`(SchemaType.JSON)
-      .schema("""{"type":"any"}""".getBytes("UTF-8"))
+      .schema(s.toString.getBytes("UTF-8"))
       .build
       

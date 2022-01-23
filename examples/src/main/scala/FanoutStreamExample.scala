@@ -33,7 +33,7 @@ object FanoutStreamExample extends App:
 
   val consumer: ZManaged[PulsarClient with Console, Throwable, Unit] =
     for
-      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
+      builder  <- ConsumerBuilder.make(using Schema.STRING).toManaged_
       consumer <- builder
                     .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .pattern(s"$pattern.*")

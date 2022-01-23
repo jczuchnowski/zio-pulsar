@@ -18,14 +18,14 @@ object StreamingExample extends App:
 
   val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for
-      sink   <- Producer.make(topic, Schema.STRING).map(_.asSink)
+      sink   <- Producer.make(topic)(using Schema.STRING).map(_.asSink)
       stream =  Stream.fromIterable(0 to 100).map(i => s"Message $i")
       _      <- stream.run(sink).toManaged_
     yield ()
 
   val consumer: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
+      builder  <- ConsumerBuilder.make(using Schema.STRING).toManaged_
       consumer <- builder
                     .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .topic(topic)
