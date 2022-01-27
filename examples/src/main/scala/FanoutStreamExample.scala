@@ -10,7 +10,7 @@ import org.apache.pulsar.client.api.{
   Producer => JProducer, 
   PulsarClient => JPulsarClient, 
   PulsarClientException,
-  Schema
+  Schema => JSchema
 }
 
 object FanoutStreamExample extends App:
@@ -33,7 +33,7 @@ object FanoutStreamExample extends App:
 
   val consumer: ZManaged[PulsarClient with Console, Throwable, Unit] =
     for
-      builder  <- ConsumerBuilder.make(using Schema.STRING).toManaged_
+      builder  <- ConsumerBuilder.make(JSchema.STRING).toManaged_
       consumer <- builder
                     .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .pattern(s"$pattern.*")

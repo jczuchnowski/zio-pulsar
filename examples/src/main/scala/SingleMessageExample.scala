@@ -2,7 +2,7 @@ package examples
 
 import zio._
 import zio.pulsar._
-import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema }
+import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema => JSchema }
 import RegexSubscriptionMode._
 
 object SingleMessageExample extends App:
@@ -16,7 +16,7 @@ object SingleMessageExample extends App:
 
   val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make(using Schema.STRING).toManaged_
+      builder  <- ConsumerBuilder.make(JSchema.STRING).toManaged_
       consumer <- builder
                     .topic(topic)
                     .subscription(
@@ -24,7 +24,7 @@ object SingleMessageExample extends App:
                         "my-subscription", 
                         SubscriptionType.Shared))
                     .build
-      producer <- Producer.make(topic)(using Schema.STRING)
+      producer <- Producer.make(topic, JSchema.STRING)
       _        <- producer.send("Hello!").toManaged_
       m        <- consumer.receive.toManaged_
     yield ()
