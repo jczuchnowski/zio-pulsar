@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  manager:
+    image: apachepulsar/pulsar-manager:v0.2.0
+    ports:
+      - "9527:9527"
+      - "7750:7750"
+    environment:
+      - SPRING_CONFIGURATION_FILE=/pulsar-manager/pulsar-manager/application.properties
+    networks:
+      - pulsar
+  
+  manager_setup:
+    image: curlimages/curl:7.81.0
+    depends_on:
+      - manager
+    restart: "no"
+    volumes:
+      - ./manager_setup.sh:/manager_setup.sh
+    networks:
+      - pulsar
+    command: ["./manager_setup.sh"]
+  
+  pulsar:
+    image: apachepulsar/pulsar:2.8.1
+    ports:
+      - "6650:6650"
+      - "8080:8080"
+    volumes:
+      - pulsardata:/pulsar/data
+      - pulsarconf:/pulsar/conf
+    networks:
+      - pulsar
+
+volumes:
+  pulsardata:
+  pulsarconf:
+
+networks:
+  pulsar:
