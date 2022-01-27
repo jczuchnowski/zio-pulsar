@@ -14,7 +14,7 @@ import org.apache.pulsar.client.api.{
   Schema,
   SubscriptionInitialPosition,
 }
-import zio.{ Duration, Has, ZIO, ZManaged }
+import zio.{ Duration, ZIO, ZManaged }
 
 case class Subscription[K <: SubscriptionKind](
   name: String, 
@@ -151,14 +151,14 @@ final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: Subs
     def topic(topic: String): ConsumerBuilder[T, S with ToTopic, K, Topic] =
       new ConsumerBuilder(builder.topic(topic))
 
-    def build(implicit ev: S =:= ConfigComplete): ZManaged[Has[PulsarClient], PulsarClientException, Consumer[T]] =
+    def build(implicit ev: S =:= ConfigComplete): ZManaged[PulsarClient, PulsarClientException, Consumer[T]] =
       val consumer = ZIO.effect(new Consumer(builder.subscribe)).refineToOrDie[PulsarClientException]
       ZManaged.make(consumer)(p => ZIO.effect(p.consumer.close).orDie)
 
 object ConsumerBuilder:
 
-  val make: ZIO[Has[PulsarClient], PulsarClientException, ConsumerBuilder[Array[Byte], ConfigPart.Empty, Nothing, Nothing]] = 
-    ZIO.accessM[Has[PulsarClient]](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
+  val make: ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[Array[Byte], ConfigPart.Empty, Nothing, Nothing]] = 
+    ZIO.accessM[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
 
-  def make[M](schema: Schema[M]): ZIO[Has[PulsarClient], PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
-    ZIO.accessM[Has[PulsarClient]](_.get.client).map(c => new ConsumerBuilder(c.newConsumer(schema)))
+  def make[M](schema: Schema[M]): ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] = 
+    ZIO.accessM[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer(schema)))

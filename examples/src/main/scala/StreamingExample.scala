@@ -1,6 +1,6 @@
 package examples
 
-import org.apache.pulsar.client.api.{ PulsarClientException, Schema }
+import org.apache.pulsar.client.api.{ PulsarClientException, Schema => JSchema}
 import zio._
 import zio.pulsar._
 import zio.stream._
@@ -16,16 +16,16 @@ object StreamingExample extends App:
 
   val topic = "my-topic"
 
-  val producer: ZManaged[Has[PulsarClient], PulsarClientException, Unit] = 
+  val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for
-      sink   <- Producer.make(topic, Schema.STRING).map(_.asSink)
+      sink   <- Producer.make(topic, JSchema.STRING).map(_.asSink)
       stream =  Stream.fromIterable(0 to 100).map(i => s"Message $i")
       _      <- stream.run(sink).toManaged_
     yield ()
 
-  val consumer: ZManaged[Has[PulsarClient], PulsarClientException, Unit] =
+  val consumer: ZManaged[PulsarClient, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
+      builder  <- ConsumerBuilder.make(JSchema.STRING).toManaged_
       consumer <- builder
                     .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .topic(topic)
