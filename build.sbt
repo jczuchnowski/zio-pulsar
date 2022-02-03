@@ -27,7 +27,7 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "dev.zio"             %% "zio"               % zioVersion % Provided,
       "dev.zio"             %% "zio-streams"       % zioVersion % Provided,
-      "dev.zio"             %% "zio-json"          % "0.3.0-RC1-1" % Provided,
+      "dev.zio"             %% "zio-json"          % "0.3.0-RC3" % Provided,
       "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1", 
       "org.apache.pulsar"    % "pulsar-client"     % "2.9.1",
       "dev.zio"             %% "zio-test"          % zioVersion % Test,
@@ -47,7 +47,7 @@ lazy val examples = project
       //"dev.zio" %% "zio-logging" % "0.5.6",
       "dev.zio"       %% "zio"             % zioVersion,
       "dev.zio"       %% "zio-streams"     % zioVersion,
-      "dev.zio"             %% "zio-json"          % "0.3.0-RC1-1",
+      "dev.zio"             %% "zio-json"          % "0.3.0-RC3",
       "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1",
       "ch.qos.logback" % "logback-classic" % "1.2.7"
     )
