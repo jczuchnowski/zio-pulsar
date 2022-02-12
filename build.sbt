@@ -30,10 +30,13 @@ lazy val core = project
       "dev.zio"             %% "zio-json"          % "0.3.0-RC1-1" % Provided,
       "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1", 
       "org.apache.pulsar"    % "pulsar-client"     % "2.9.1",
+      "ch.qos.logback"       % "logback-classic"   % "1.2.7",
       "dev.zio"             %% "zio-test"          % zioVersion % Test,
       "dev.zio"             %% "zio-test-sbt"      % zioVersion % Test,
       "dev.zio"             %% "zio-test-junit"    % zioVersion % Test,
-      "dev.zio"             %% "zio-test-magnolia" % zioVersion % Test
+      "dev.zio"             %% "zio-test-magnolia" % zioVersion % Test,
+      "org.testcontainers"   % "pulsar"                      % "1.16.3" % Test,
+      "com.dimafeng"        %% "testcontainers-scala-pulsar" % "0.40.1" % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )
@@ -49,7 +52,7 @@ lazy val examples = project
       "dev.zio"       %% "zio-streams"     % zioVersion,
       "dev.zio"             %% "zio-json"          % "0.3.0-RC1-1",
       "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1",
-      "ch.qos.logback" % "logback-classic" % "1.2.7"
+      "ch.qos.logback" % "logback-classic" % "1.2.10"
     )
   )
   .dependsOn(core)
