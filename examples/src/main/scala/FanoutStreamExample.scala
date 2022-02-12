@@ -10,7 +10,7 @@ import org.apache.pulsar.client.api.{
   Producer => JProducer, 
   PulsarClient => JPulsarClient, 
   PulsarClientException,
-  Schema
+  Schema => JSchema
 }
 
 object FanoutStreamExample extends App:
@@ -24,16 +24,16 @@ object FanoutStreamExample extends App:
 
   val pattern = "dynamic-topic-"
 
-  val producer: ZManaged[Has[PulsarClient], PulsarClientException, Unit] = 
+  val producer: ZManaged[PulsarClient, PulsarClientException, Unit] = 
     for
       sink   <- DynamicProducer.make(bytes => s"$pattern${new String(bytes).toInt%5}").map(_.asSink)
       stream =  Stream.fromIterable(0 to 100).map(i => i.toString.getBytes)
       _      <- stream.run(sink).toManaged_
     yield ()
 
-  val consumer: ZManaged[Has[PulsarClient] with Has[Console], Throwable, Unit] =
+  val consumer: ZManaged[PulsarClient with Console, Throwable, Unit] =
     for
-      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
+      builder  <- ConsumerBuilder.make(JSchema.STRING).toManaged_
       consumer <- builder
                     .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .pattern(s"$pattern.*")
@@ -69,7 +69,7 @@ final class DynamicProducer private (val client: JPulsarClient, val f: Array[Byt
 
 object DynamicProducer:
 
-  def make(f: Array[Byte] => String): ZManaged[Has[PulsarClient], PulsarClientException, DynamicProducer] =
+  def make(f: Array[Byte] => String): ZManaged[PulsarClient, PulsarClientException, DynamicProducer] =
     val producer = PulsarClient.make.map { client =>
       DynamicProducer(client, f)
     }
