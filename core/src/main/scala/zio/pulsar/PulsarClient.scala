@@ -8,8 +8,8 @@ trait PulsarClient:
 
 object PulsarClient:
 
-  def live(host: String, port: Int): ULayer[Has[PulsarClient]] =
-    val builder = JPulsarClient.builder().serviceUrl(s"pulsar://$host:$port")
+  def live(url: String): ULayer[PulsarClient] =
+    val builder = JPulsarClient.builder().serviceUrl(url)
   
     val cl = new PulsarClient {
       val client = ZIO.effect(builder.build).refineToOrDie[PulsarClientException]
@@ -17,5 +17,8 @@ object PulsarClient:
   
     ZManaged.make(ZIO.effectTotal(cl))(c => c.client.map(_.close()).orDie).toLayer
 
-  def make: ZIO[Has[PulsarClient], PulsarClientException, JPulsarClient] =
-    ZIO.accessM[Has[PulsarClient]](_.get.client)
+  def live(host: String, port: Int): ULayer[PulsarClient] =
+    live(s"pulsar://$host:$port")
+
+  def make: ZIO[PulsarClient, PulsarClientException, JPulsarClient] =
+    ZIO.accessM[PulsarClient](_.get.client)
