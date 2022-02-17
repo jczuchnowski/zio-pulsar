@@ -18,7 +18,7 @@ object SchemaExample extends App:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
-  val topic = "my-topic"
+  val topic = "my-schema-example-topic"
 
   given jsonCodec: JsonCodec[User] = DeriveJsonCodec.gen[User]
 
@@ -29,7 +29,7 @@ object SchemaExample extends App:
                     .topic(topic)
                     .subscription(
                       Subscription(
-                        "my-subscription", 
+                        "my-schema-example-subscription", 
                         SubscriptionType.Shared))
                     .build
       producer <- Producer.make(topic, Schema.jsonSchema[User])
