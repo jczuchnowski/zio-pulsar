@@ -13,7 +13,7 @@ inThisBuild(
         url("https://github.com/jczuchnowski")
       )
     ),
-    scalaVersion := "3.1.1"
+    scalaVersion := "3.1.2"
   )
 )
 
