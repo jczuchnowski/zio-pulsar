@@ -36,7 +36,7 @@ lazy val core = project
       "dev.zio"             %% "zio-test-junit"    % zioVersion % Test,
       "dev.zio"             %% "zio-test-magnolia" % zioVersion % Test,
       "org.testcontainers"   % "pulsar"                      % "1.16.3" % Test,
-      "com.dimafeng"        %% "testcontainers-scala-pulsar" % "0.40.1" % Test
+      "com.dimafeng"        %% "testcontainers-scala-pulsar" % "0.40.8" % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )
