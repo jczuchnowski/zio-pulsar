@@ -1,13 +1,13 @@
 package zio.pulsar
 
-import org.apache.pulsar.client.api.{ MessageId, Producer => JProducer, PulsarClientException, Schema }
-import zio.{ IO, ZIO, ZManaged }
+import org.apache.pulsar.client.api.{ MessageId, Producer as JProducer, PulsarClientException, Schema }
+import zio.{ IO, Scope, ZIO }
 import zio.stream.{ Sink, ZSink }
 
 final class Producer[M] private (val producer: JProducer[M]):
 
   def send(message: M): IO[PulsarClientException, MessageId] =
-    ZIO.effect(producer.send(message)).refineToOrDie[PulsarClientException]
+    ZIO.attempt(producer.send(message)).refineToOrDie[PulsarClientException]
 
   def sendAsync(message: M): IO[PulsarClientException, MessageId] =
     ZIO.fromCompletionStage(producer.sendAsync(message)).refineToOrDie[PulsarClientException]
@@ -18,17 +18,16 @@ final class Producer[M] private (val producer: JProducer[M]):
 
 object Producer:
 
-  def make(topic: String): ZManaged[PulsarClient, PulsarClientException, Producer[Array[Byte]]] =
+  def make(topic: String): ZIO[PulsarClient & Scope, PulsarClientException, Producer[Array[Byte]]] =
     val producer = PulsarClient.make.flatMap { client =>
       val builder = client.newProducer.topic(topic)
-      ZIO.effect(new Producer(builder.create)).refineToOrDie[PulsarClientException]
+      ZIO.attempt(new Producer(builder.create)).refineToOrDie[PulsarClientException]
     }
-    ZManaged.make(producer)(p => ZIO.effect(p.producer.close).orDie)
+    ZIO.acquireRelease(producer)(p => ZIO.attempt(p.producer.close()).orDie)
 
-  def make[M](topic: String, schema: Schema[M]): ZManaged[PulsarClient, PulsarClientException, Producer[M]] =
+  def make[M](topic: String, schema: Schema[M]): ZIO[PulsarClient & Scope, PulsarClientException, Producer[M]] =
     val producer = PulsarClient.make.flatMap { client =>
       val builder = client.newProducer(schema).topic(topic)
-      ZIO.effect(new Producer(builder.create)).refineToOrDie[PulsarClientException]
+      ZIO.attempt(new Producer(builder.create)).refineToOrDie[PulsarClientException]
     }
-    ZManaged.make(producer)(p => ZIO.effect(p.producer.close).orDie)
-
+    ZIO.acquireRelease(producer)(p => ZIO.attempt(p.producer.close()).orDie)

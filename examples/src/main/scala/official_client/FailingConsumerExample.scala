@@ -4,7 +4,7 @@ import org.apache.pulsar.client.api._
 
 @main
 def failingConsumerExample =
-  val client = PulsarClient.builder.serviceUrl("pulsar://localhost:6650").build
+  val client   = PulsarClient.builder.serviceUrl("pulsar://localhost:6650").build
   val consumer = client.newConsumer
     .topic("my-topic")
     .subscriptionName("my-subscription")

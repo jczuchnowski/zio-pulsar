@@ -1,11 +1,6 @@
 package zio.pulsar
 
-import org.apache.pulsar.client.api.{
-  Message,
-  MessageId,
-  Consumer => JConsumer,
-  PulsarClientException,
-}
+import org.apache.pulsar.client.api.{ Consumer => JConsumer, Message, MessageId, PulsarClientException }
 import zio.{ IO, ZIO }
 //import zio.blocking._
 import zio.stream._
@@ -13,16 +8,19 @@ import zio.stream._
 final class Consumer[M](val consumer: JConsumer[M]):
 
   def acknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
-    ZIO.effect(consumer.acknowledge(messageId)).refineToOrDie[PulsarClientException]
+    ZIO.attempt(consumer.acknowledge(messageId)).refineToOrDie[PulsarClientException]
+
+  def acknowledge[T](message: Message[T]): IO[PulsarClientException, Unit] =
+    ZIO.attempt(consumer.acknowledge(message)).refineToOrDie[PulsarClientException]
 
   def negativeAcknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
-    ZIO.effect(consumer.negativeAcknowledge(messageId)).refineToOrDie[PulsarClientException]
+    ZIO.attempt(consumer.negativeAcknowledge(messageId)).refineToOrDie[PulsarClientException]
 
   val receive: IO[PulsarClientException, Message[M]] =
-    ZIO.effect(consumer.receive).refineToOrDie[PulsarClientException]
+    ZIO.attempt(consumer.receive).refineToOrDie[PulsarClientException]
 
   val receiveAsync: IO[PulsarClientException, Message[M]] =
     ZIO.fromCompletionStage(consumer.receiveAsync).refineToOrDie[PulsarClientException]
 
-  val receiveStream: Stream[PulsarClientException, Message[M]] = 
-    ZStream.repeatEffect(ZIO.attemptBlocking(consumer.receive).refineToOrDie[PulsarClientException])
+  val receiveStream: Stream[PulsarClientException, Message[M]] =
+    ZStream.repeatZIO(ZIO.attemptBlocking(consumer.receive).refineToOrDie[PulsarClientException])

@@ -13,8 +13,8 @@ case class User(email: String, name: Option[String], age: Int)
 
 object SchemaExample extends App:
 
-  def run(args: List[String]): URIO[ZEnv, ExitCode] =
-    app.provideCustomLayer(pulsarClient).useNow.exitCode
+  def run(args: List[String]) =
+    app.provideLayer(pulsarClient ++ Scope.default).exitCode
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
@@ -22,18 +22,15 @@ object SchemaExample extends App:
 
   given jsonCodec: JsonCodec[User] = DeriveJsonCodec.gen[User]
 
-  val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
+  val app: ZIO[PulsarClient & Scope, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make(Schema.jsonSchema[User]).toManaged_
+      builder  <- ConsumerBuilder.make(Schema.jsonSchema[User])
       consumer <- builder
                     .topic(topic)
-                    .subscription(
-                      Subscription(
-                        "my-schema-example-subscription", 
-                        SubscriptionType.Shared))
+                    .subscription(Subscription("my-schema-example-subscription", SubscriptionType.Shared))
                     .build
       producer <- Producer.make(topic, Schema.jsonSchema[User])
-      _        <- producer.send(User("test@test.com", None, 25)).toManaged_
-      m        <- consumer.receive.toManaged_
-      _        = println(m.getValue)
+      _        <- producer.send(User("test@test.com", None, 25))
+      m        <- consumer.receive
+      _         = println(m.getValue)
     yield ()

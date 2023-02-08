@@ -1,11 +1,15 @@
 package zio.pulsar
 
-import zio.test._
+import org.apache.pulsar.client.api.PulsarClientException
+import zio.Scope
+import zio.test.*
+
 import java.util.Properties
+import zio.test.ZIOSpecDefault
 
-trait PulsarContainerSpec extends DefaultRunnableSpec {
+trait PulsarContainerSpec extends ZIOSpecDefault {
 
-  type PulsarEnvironment = TestEnvironment & PulsarClient
+  type PulsarEnvironment = TestEnvironment & PulsarClient & Scope
 
   val pulsarClientLayer = TestContainer
     .pulsar
@@ -13,11 +17,11 @@ trait PulsarContainerSpec extends DefaultRunnableSpec {
       PulsarClient.live(a.get.pulsarBrokerUrl())
     ).orDie
 
-  val layer = TestEnvironment.live >+> pulsarClientLayer
+  val layer = (Scope.default ++ testEnvironment) >+> pulsarClientLayer
 
-  override def spec: Spec[TestEnvironment, TestFailure[Any], TestSuccess] =
-    specLayered.provideCustomLayerShared(layer)
+  override def spec =
+    specLayered.provideLayerShared(layer)
 
-  def specLayered: Spec[PulsarEnvironment, TestFailure[Object], TestSuccess]
+  def specLayered: Spec[PulsarEnvironment, PulsarClientException]
 
 }

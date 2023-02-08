@@ -1,4 +1,4 @@
-val zioVersion = "2.0.0-RC2"
+val zioVersion = "2.0.7"
 
 inThisBuild(
   List(
@@ -13,7 +13,7 @@ inThisBuild(
         url("https://github.com/jczuchnowski")
       )
     ),
-    scalaVersion := "3.1.1"
+    scalaVersion := "3.2.0"
   )
 )
 
@@ -27,16 +27,16 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "dev.zio"             %% "zio"               % zioVersion % Provided,
       "dev.zio"             %% "zio-streams"       % zioVersion % Provided,
-      "dev.zio"             %% "zio-json"          % "0.3.0-RC3" % Provided,
-      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1", 
-      "org.apache.pulsar"    % "pulsar-client"     % "2.9.1",
-      "ch.qos.logback"       % "logback-classic"   % "1.2.10",
+      "dev.zio"             %% "zio-json"          % "0.4.2" % Provided,
+      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.3", 
+      "org.apache.pulsar"    % "pulsar-client"     % "2.10.0",
+      "ch.qos.logback"       % "logback-classic"   % "1.4.5",
       "dev.zio"             %% "zio-test"          % zioVersion % Test,
       "dev.zio"             %% "zio-test-sbt"      % zioVersion % Test,
       "dev.zio"             %% "zio-test-junit"    % zioVersion % Test,
       "dev.zio"             %% "zio-test-magnolia" % zioVersion % Test,
-      "org.testcontainers"   % "pulsar"                      % "1.16.3" % Test,
-      "com.dimafeng"        %% "testcontainers-scala-pulsar" % "0.40.1" % Test
+      "org.testcontainers"   % "pulsar"                      % "1.17.6" % Test,
+      "com.dimafeng"        %% "testcontainers-scala-pulsar" % "0.40.12" % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )
@@ -50,9 +50,9 @@ lazy val examples = project
       //"dev.zio" %% "zio-logging" % "0.5.6",
       "dev.zio"       %% "zio"             % zioVersion,
       "dev.zio"       %% "zio-streams"     % zioVersion,
-      "dev.zio"             %% "zio-json"          % "0.3.0-RC3",
-      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1",
-      "ch.qos.logback" % "logback-classic" % "1.2.10"
+      "dev.zio"             %% "zio-json"          % "0.4.2",
+      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.3",
+      "ch.qos.logback" % "logback-classic" % "1.4.5"
     )
   )
   .dependsOn(core)
