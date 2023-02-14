@@ -4,6 +4,7 @@ import org.apache.pulsar.client.api.{ Consumer => JConsumer, Message, MessageId,
 import zio.{ IO, ZIO }
 //import zio.blocking._
 import zio.stream._
+import scala.jdk.CollectionConverters._
 
 final class Consumer[M](val consumer: JConsumer[M]):
 
@@ -12,6 +13,9 @@ final class Consumer[M](val consumer: JConsumer[M]):
 
   def acknowledge[T](message: Message[T]): IO[PulsarClientException, Unit] =
     ZIO.attempt(consumer.acknowledge(message)).refineToOrDie[PulsarClientException]
+
+  def acknowledge(messages: Seq[MessageId]): IO[PulsarClientException, Unit] =
+    ZIO.attempt(consumer.acknowledge(messages.asJava)).refineToOrDie[PulsarClientException]
 
   def negativeAcknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
     ZIO.attempt(consumer.negativeAcknowledge(messageId)).refineToOrDie[PulsarClientException]
