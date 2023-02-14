@@ -1,21 +1,19 @@
 package examples
 
-import zio._
-import zio.pulsar._
-import zio.stm._
-import zio.stream._
-
+import examples.SchemaExample.{ app, pulsarClient }
+import zio.*
+import zio.pulsar.*
+import zio.stm.*
+import zio.stream.*
 import org.apache.pulsar.client.api.{
   MessageId,
-  Producer => JProducer,
-  PulsarClient => JPulsarClient,
+  Producer as JProducer,
+  PulsarClient as JPulsarClient,
   PulsarClientException,
-  Schema => JSchema
+  Schema as JSchema
 }
 
-object FanoutStreamExample extends App:
-
-  def run(args: List[String]) = app.provideLayer(layer ++ Scope.default).exitCode
+object FanoutStreamExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
@@ -50,6 +48,8 @@ object FanoutStreamExample extends App:
       _ <- producer
       _ <- f.join
     yield ()
+
+  override def run = app.provideLayer(layer ++ Scope.default).exitCode
 
 final class DynamicProducer private (val client: JPulsarClient, val f: Array[Byte] => String):
 

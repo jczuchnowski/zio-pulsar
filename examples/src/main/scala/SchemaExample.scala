@@ -11,10 +11,7 @@ import zio.json.JsonCodec
 
 case class User(email: String, name: Option[String], age: Int)
 
-object SchemaExample extends App:
-
-  def run(args: List[String]) =
-    app.provideLayer(pulsarClient ++ Scope.default).exitCode
+object SchemaExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
@@ -35,3 +32,5 @@ object SchemaExample extends App:
       m              <- consumer.receive
       _               = println(m.getValue)
     yield ()
+
+  override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode

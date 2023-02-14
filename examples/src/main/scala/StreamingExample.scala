@@ -1,14 +1,12 @@
 package examples
 
-import org.apache.pulsar.client.api.{ PulsarClientException, Schema => JSchema }
-import zio._
-import zio.pulsar._
-import zio.stream._
+import examples.SchemaExample.{ app, pulsarClient }
+import org.apache.pulsar.client.api.{ PulsarClientException, Schema as JSchema }
+import zio.*
+import zio.pulsar.*
+import zio.stream.*
 
-object StreamingExample extends App:
-
-  def run(args: List[String]) =
-    app.provideLayer(layer ++ Scope.default).exitCode
+object StreamingExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
@@ -41,3 +39,5 @@ object StreamingExample extends App:
       _ <- producer
       _ <- f.join
     yield ()
+
+  override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode

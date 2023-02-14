@@ -1,14 +1,12 @@
 package examples
 
-import zio._
-import zio.pulsar._
-import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema => JSchema }
-import RegexSubscriptionMode._
+import zio.*
+import zio.pulsar.*
+import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema as JSchema }
+import RegexSubscriptionMode.*
+import examples.SchemaExample.{ app, pulsarClient }
 
-object SingleMessageExample extends App:
-
-  def run(args: List[String]) =
-    app.provideLayer(pulsarClient ++ Scope.default).exitCode
+object SingleMessageExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
@@ -25,3 +23,5 @@ object SingleMessageExample extends App:
       _        <- producer.send("Hello!")
       m        <- consumer.receive
     yield ()
+
+  override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode
