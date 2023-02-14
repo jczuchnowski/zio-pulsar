@@ -40,4 +40,4 @@ object StreamingExample extends ZIOAppDefault:
       _ <- f.join
     yield ()
 
-  override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode
+  override def run = app.provideLayer(layer ++ Scope.default).exitCode
