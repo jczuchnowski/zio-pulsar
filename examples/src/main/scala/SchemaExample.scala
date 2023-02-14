@@ -24,13 +24,14 @@ object SchemaExample extends App:
 
   val app: ZIO[PulsarClient & Scope, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make(Schema.jsonSchema[User])
-      consumer <- builder
-                    .topic(topic)
-                    .subscription(Subscription("my-schema-example-subscription", SubscriptionType.Shared))
-                    .build
-      producer <- Producer.make(topic, Schema.jsonSchema[User])
-      _        <- producer.send(User("test@test.com", None, 25))
-      m        <- consumer.receive
-      _         = println(m.getValue)
+      builder        <- ConsumerBuilder.make(Schema.jsonSchema[User])
+      consumer       <- builder
+                          .topic(topic)
+                          .subscription(Subscription("my-schema-example-subscription", SubscriptionType.Shared))
+                          .build
+      productBuilder <- ProducerBuilder.make(Schema.jsonSchema[User])
+      producer       <- productBuilder.topic(topic).build
+      _              <- producer.send(User("test@test.com", None, 25))
+      m              <- consumer.receive
+      _               = println(m.getValue)
     yield ()

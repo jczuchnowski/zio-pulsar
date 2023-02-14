@@ -37,7 +37,8 @@ object BasicSpec extends PulsarContainerSpec:
                           "my-test-subscription", 
                           SubscriptionType.Exclusive))
                       .build
-        producer <- Producer.make(topic, JSchema.STRING)
+        productBuilder <- ProducerBuilder.make(JSchema.STRING)
+        producer <- productBuilder.topic(topic)
         _        <- producer.send("Hello!")
         m        <- consumer.receive
       yield assertTrue(m.getValue == "Hello!"))
@@ -56,7 +57,8 @@ object BasicSpec extends PulsarContainerSpec:
                           "my-test-subscription-2", 
                           SubscriptionType.Exclusive))
                       .build
-        producer <- Producer.make(topic, Schema.jsonSchema[Order])
+        productBuilder <- ProducerBuilder.make(Schema.jsonSchema[Order])
+        producer <- productBuilder.topic(topic)
         _        <- producer.send(message)
         m        <- consumer.receive
       yield assertTrue(m.getValue == message)

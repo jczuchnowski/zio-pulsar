@@ -34,18 +34,21 @@ object Subscription:
     initialPosition: SubscriptionInitialPosition
   ): Subscription[K] =
     Subscription(name, `type`, Some(initialPosition))
+end Subscription
 
 sealed trait SubscriptionMode
 
 object SubscriptionMode:
   sealed trait Topic extends SubscriptionMode
   sealed trait Regex extends SubscriptionMode
+end SubscriptionMode
 
 sealed trait SubscriptionKind
 
 object SubscriptionKind:
   sealed trait SingleConsumerSubscription extends SubscriptionKind
   sealed trait SharedSubscription         extends SubscriptionKind
+end SubscriptionKind
 
 sealed trait SubscriptionType[K <: SubscriptionKind]:
   self =>
@@ -55,28 +58,31 @@ sealed trait SubscriptionType[K <: SubscriptionKind]:
       case _: SubscriptionType.Failover.type  => org.apache.pulsar.client.api.SubscriptionType.Failover
       case _: SubscriptionType.KeyShared      => org.apache.pulsar.client.api.SubscriptionType.Key_Shared
       case _: SubscriptionType.Shared.type    => org.apache.pulsar.client.api.SubscriptionType.Shared
+end SubscriptionType
 
 object SubscriptionType:
   object Exclusive                                    extends SubscriptionType[SubscriptionKind.SingleConsumerSubscription]
   object Failover                                     extends SubscriptionType[SubscriptionKind.SingleConsumerSubscription]
   final case class KeyShared(policy: KeySharedPolicy) extends SubscriptionType[SubscriptionKind.SharedSubscription]
   object Shared                                       extends SubscriptionType[SubscriptionKind.SharedSubscription]
+end SubscriptionType
 
-sealed trait ConfigPart
+sealed trait ConsumerConfigPart
 
-object ConfigPart:
-  sealed trait Empty      extends ConfigPart
-  sealed trait Subscribed extends ConfigPart
-  sealed trait ToTopic    extends ConfigPart
+object ConsumerConfigPart:
+  sealed trait Empty      extends ConsumerConfigPart
+  sealed trait Subscribed extends ConsumerConfigPart
+  sealed trait ToTopic    extends ConsumerConfigPart
 
   type ConfigComplete = Empty with Subscribed with ToTopic
+end ConsumerConfigPart
 
-final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: SubscriptionMode](
+final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M <: SubscriptionMode] private (
   builder: JConsumerBuilder[T]
 ):
   self =>
 
-  import ConfigPart._
+  import ConsumerConfigPart._
   import SubscriptionKind._
   import SubscriptionMode._
   import RegexSubscriptionMode._
@@ -113,8 +119,8 @@ final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: Subs
   ): ConsumerBuilder[T, S, K, M] =
     new ConsumerBuilder(builder.maxTotalReceiverQueueSizeAcrossPartitions(maxTotalReceiverQueueSizeAcrossPartitions))
 
-  def maxPendingChuckedMessage(max: Int): ConsumerBuilder[T, S, K, M] =
-    new ConsumerBuilder(builder.maxPendingChuckedMessage(max))
+  def maxPendingChunkedMessage(max: Int): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.maxPendingChunkedMessage(max))
 
   def consumerEventListener(consumerEventListener: JConsumerEventListener): ConsumerBuilder[T, S, K, M] =
     new ConsumerBuilder(builder.consumerEventListener(consumerEventListener))
@@ -162,13 +168,16 @@ final class ConsumerBuilder[T, S <: ConfigPart, K <: SubscriptionKind, M <: Subs
   def build(implicit ev: S =:= ConfigComplete): ZIO[PulsarClient with Scope, PulsarClientException, Consumer[T]] =
     val consumer = ZIO.attempt(new Consumer(builder.subscribe)).refineToOrDie[PulsarClientException]
     ZIO.acquireRelease(consumer)(p => ZIO.attempt(p.consumer.close()).orDie)
+end ConsumerBuilder
 
 object ConsumerBuilder:
 
-  val make: ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[Array[Byte], ConfigPart.Empty, Nothing, Nothing]] =
+  lazy val make: ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[Array[
+    Byte
+  ], ConsumerConfigPart.Empty, Nothing, Nothing]] =
     ZIO.environmentWithZIO[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer))
 
   def make[M](
     schema: Schema[M]
-  ): ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[M, ConfigPart.Empty, Nothing, Nothing]] =
+  ): ZIO[PulsarClient, PulsarClientException, ConsumerBuilder[M, ConsumerConfigPart.Empty, Nothing, Nothing]] =
     ZIO.environmentWithZIO[PulsarClient](_.get.client).map(c => new ConsumerBuilder(c.newConsumer(schema)))

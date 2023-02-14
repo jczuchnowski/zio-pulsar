@@ -4,7 +4,7 @@ import org.apache.pulsar.client.api.{ MessageId, Producer as JProducer, PulsarCl
 import zio.{ IO, Scope, ZIO }
 import zio.stream.{ Sink, ZSink }
 
-final class Producer[M] private (val producer: JProducer[M]):
+final class Producer[M](val producer: JProducer[M]):
 
   def send(message: M): IO[PulsarClientException, MessageId] =
     ZIO.attempt(producer.send(message)).refineToOrDie[PulsarClientException]
@@ -15,6 +15,7 @@ final class Producer[M] private (val producer: JProducer[M]):
   def asSink: Sink[PulsarClientException, M, M, Unit] = ZSink.foreach(m => send(m))
 
   def asSinkAsync: Sink[PulsarClientException, M, M, Unit] = ZSink.foreach(m => sendAsync(m))
+end Producer
 
 object Producer:
 

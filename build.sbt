@@ -57,7 +57,7 @@ lazy val examples = project
   )
   .dependsOn(core)
 
-lazy val root = project
+lazy val `zio-pulsar` = project
   .in(file("."))
   .settings(
     publish / skip := true
