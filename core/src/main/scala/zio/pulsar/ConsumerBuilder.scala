@@ -5,28 +5,34 @@ import org.apache.pulsar.client.api.{
   BatchReceivePolicy as JBatchReceivePolicy,
   ConsumerBuilder as JConsumerBuilder,
   ConsumerEventListener as JConsumerEventListener,
+  ConsumerInterceptor,
   DeadLetterPolicy as JDeadLetterPolicy,
   KeySharedPolicy,
+  MessageListener,
   PulsarClient as JPulsarClient,
   PulsarClientException,
   RegexSubscriptionMode,
   Schema,
-  SubscriptionInitialPosition
+  SubscriptionInitialPosition,
+  SubscriptionMode as JSubscriptionMode
 }
 import zio.{ Duration, Scope, ZIO }
+import scala.jdk.CollectionConverters.*
 
 import java.util.regex.Pattern
 
 case class Subscription[K <: SubscriptionKind](
   name: String,
   `type`: SubscriptionType[K],
-  initialPosition: Option[SubscriptionInitialPosition] = None
-  // properties: SubscriptionProperties
+  initialPosition: Option[SubscriptionInitialPosition] = None,
+  properties: Map[String, String] = Map.empty
 ) { self =>
 
   def withInitialPosition(initialPosition: SubscriptionInitialPosition): Subscription[K] =
     self.copy(initialPosition = Some(initialPosition))
 
+  def withProperties(properties: Map[String, String]): Subscription[K] =
+    self.copy(properties = properties)
 }
 
 object Subscription:
@@ -88,6 +94,24 @@ final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M
   import SubscriptionKind._
   import SubscriptionMode._
   import RegexSubscriptionMode._
+
+  def loadConf(config: Map[String, Any]): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.loadConf(config.asJava))
+
+  def properties(properties: Map[String, String]): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.properties(properties.asJava))
+
+  def property(key: String, value: String): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.property(key, value))
+
+  def messageListener(messageListener: MessageListener[T]): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.messageListener(messageListener))
+
+  def intercept(
+    interceptor: ConsumerInterceptor[T],
+    interceptors: ConsumerInterceptor[T]*
+  ): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.intercept(Seq(interceptor) ++ interceptors: _*))
 
   def acknowledgmentGroupTime(delay: Long, unit: TimeUnit): ConsumerBuilder[T, S, K, M] =
     new ConsumerBuilder(builder.acknowledgmentGroupTime(delay, unit))
@@ -162,10 +186,14 @@ final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M
         .fold(builder)(p => builder.subscriptionInitialPosition(p))
         .subscriptionType(subscription.`type`.asJava)
         .subscriptionName(subscription.name)
+        .subscriptionProperties(subscription.properties.asJava)
     )
 
   def subscriptionTopicsMode(mode: RegexSubscriptionMode)(implicit ev: M =:= Regex): ConsumerBuilder[T, S, K, M] =
     new ConsumerBuilder(builder.subscriptionTopicsMode(mode))
+
+  def subscriptionMode(subscriptionMode: JSubscriptionMode)(implicit ev: M =:= Topic): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.subscriptionMode(subscriptionMode))
 
   def topic(topic: String): ConsumerBuilder[T, S with ToTopic, K, Topic] =
     new ConsumerBuilder(builder.topic(topic))
@@ -173,6 +201,7 @@ final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M
   def build(implicit ev: S =:= ConfigComplete): ZIO[PulsarClient with Scope, PulsarClientException, Consumer[T]] =
     val consumer = ZIO.attempt(new Consumer(builder.subscribe)).refineToOrDie[PulsarClientException]
     ZIO.acquireRelease(consumer)(p => ZIO.attempt(p.consumer.close()).orDie)
+
 end ConsumerBuilder
 
 object ConsumerBuilder:
