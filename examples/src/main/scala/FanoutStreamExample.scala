@@ -46,9 +46,9 @@ object FanoutStreamExample extends ZIOAppDefault:
 
   val app =
     for
-      f <- consumer
+      f <- consumer.fork
       _ <- producer
-      _ <- ZIO.never
+      _ <- f.join
     yield ()
 
   override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode
