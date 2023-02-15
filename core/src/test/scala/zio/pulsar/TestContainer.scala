@@ -12,7 +12,6 @@ object TestContainer {
       val c = new PulsarContainer()
       c.start()
       ZIO.succeed(c)
-    } { container => ZIO.succeed(container.stop()) }
-    )
+    }(container => ZIO.succeed(container.stop())))
 
 }

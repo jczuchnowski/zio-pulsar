@@ -11,11 +11,9 @@ trait PulsarContainerSpec extends ZIOSpecDefault {
 
   type PulsarEnvironment = TestEnvironment & PulsarClient & Scope
 
-  val pulsarClientLayer = TestContainer
-    .pulsar
-    .flatMap(a =>
-      PulsarClient.live(a.get.pulsarBrokerUrl())
-    ).orDie
+  val pulsarClientLayer = TestContainer.pulsar
+    .flatMap(a => PulsarClient.live(a.get.pulsarBrokerUrl()))
+    .orDie
 
   val layer = (Scope.default ++ testEnvironment) >+> pulsarClientLayer
 
