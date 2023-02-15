@@ -12,11 +12,11 @@ import org.apache.pulsar.client.api.{
   Schema as JSchema
 }
 
+import java.io.IOException
+
 object FanoutStreamExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
-
-  val layer = ZLayer.fromZIO(ZIO.succeed(Console.ConsoleLive)) ++ pulsarClient
 
   val pattern = "dynamic-topic-"
 
@@ -27,7 +27,7 @@ object FanoutStreamExample extends ZIOAppDefault:
       _     <- stream.run(sink)
     yield ()
 
-  val consumer: ZIO[PulsarClient & Console & Scope, Throwable, Unit] =
+  val consumer: ZIO[PulsarClient with Scope, IOException, Unit] =
     for
       builder  <- ConsumerBuilder.make(JSchema.STRING)
       consumer <- builder
@@ -48,7 +48,7 @@ object FanoutStreamExample extends ZIOAppDefault:
       _ <- f.join
     yield ()
 
-  override def run = app.provideLayer(layer ++ Scope.default).exitCode
+  override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode
 
 final class DynamicProducer private (val client: JPulsarClient, val f: Array[Byte] => String):
 

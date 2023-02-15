@@ -5,11 +5,11 @@ import zio.*
 import zio.pulsar.*
 import zio.stream.*
 
+import java.io.IOException
+
 object StreamingExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
-
-  val layer = ZLayer.fromZIO(ZIO.succeed(Console.ConsoleLive)) >+> pulsarClient
 
   val topic = "streaming-topic"
 
@@ -20,7 +20,7 @@ object StreamingExample extends ZIOAppDefault:
       _     <- stream.run(sink)
     yield ()
 
-  val consumer: ZIO[PulsarClient & Scope, PulsarClientException, Unit] =
+  val consumer: ZIO[PulsarClient with Scope, IOException, Unit] =
     for
       builder  <- ConsumerBuilder.make(JSchema.STRING)
       consumer <- builder
@@ -28,7 +28,7 @@ object StreamingExample extends ZIOAppDefault:
                     .topic(topic)
                     .build
       _        <- consumer.receiveStream.take(10).foreach { a =>
-                    consumer.acknowledge(a.getMessageId)
+                    Console.printLine(a.getValue) *> consumer.acknowledge(a.getMessageId)
                   }
     yield ()
 
@@ -39,4 +39,4 @@ object StreamingExample extends ZIOAppDefault:
       _ <- f.join
     yield ()
 
-  override def run = app.provideLayer(layer ++ Scope.default).exitCode
+  override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode
