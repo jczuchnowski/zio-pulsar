@@ -4,13 +4,12 @@ import zio.*
 import zio.pulsar.*
 import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema as JSchema }
 import RegexSubscriptionMode.*
-import examples.SchemaExample.{ app, pulsarClient }
 
 object SingleMessageExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
-  val topic = "my-topic"
+  val topic = "single-topic"
 
   val app: ZIO[PulsarClient & Scope, PulsarClientException, Unit] =
     for
@@ -22,6 +21,7 @@ object SingleMessageExample extends ZIOAppDefault:
       producer <- Producer.make(topic, JSchema.STRING)
       _        <- producer.send("Hello!")
       m        <- consumer.receive
+      _         = println(m.getValue)
     yield ()
 
   override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode

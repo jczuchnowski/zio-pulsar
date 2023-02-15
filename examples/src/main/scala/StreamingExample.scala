@@ -1,6 +1,5 @@
 package examples
 
-import examples.SchemaExample.{ app, pulsarClient }
 import org.apache.pulsar.client.api.{ PulsarClientException, Schema as JSchema }
 import zio.*
 import zio.pulsar.*
@@ -12,7 +11,7 @@ object StreamingExample extends ZIOAppDefault:
 
   val layer = ZLayer.fromZIO(ZIO.succeed(Console.ConsoleLive)) >+> pulsarClient
 
-  val topic = "my-topic"
+  val topic = "streaming-topic"
 
   val producer: ZIO[PulsarClient & Scope, PulsarClientException, Unit] =
     for

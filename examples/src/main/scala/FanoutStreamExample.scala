@@ -1,6 +1,5 @@
 package examples
 
-import examples.SchemaExample.{ app, pulsarClient }
 import zio.*
 import zio.pulsar.*
 import zio.stm.*

@@ -41,33 +41,27 @@ libraryDependencies ++= Seq(
 Simple example of consumer and producer:
 
 ```scala
-import org.apache.pulsar.client.api.{ PulsarClientException, Schema }
-import zio._
-import zio.pulsar._
-
-object Main extends App:
+object SingleMessageExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
-  val topic = "my-topic"
+  val topic = "single-topic"
 
-  val app: ZManaged[PulsarClient, PulsarClientException, Unit] =
+  val app: ZIO[PulsarClient & Scope, PulsarClientException, Unit] =
     for
-      builder  <- ConsumerBuilder.make(Schema.STRING).toManaged_
+      builder  <- ConsumerBuilder.make(JSchema.STRING)
       consumer <- builder
                     .topic(topic)
-                    .subscription(
-                      Subscription(
-                        "my-subscription", 
-                        SubscriptionType.Shared))
+                    .subscription(Subscription("my-subscription", SubscriptionType.Shared))
                     .build
-      producer <- Producer.make(topic, Schema.STRING)
-      _        <- producer.send("Hello!").toManaged_
-      m        <- consumer.receive.toManaged_
+      producer <- Producer.make(topic, JSchema.STRING)
+      _        <- producer.send("Hello!")
+      m        <- consumer.receive
+      _ = println(m.getValue)
     yield ()
-    
-  def run(args: List[String]): URIO[ZEnv, ExitCode] =
-    app.provideCustomLayer(pulsarClient).useNow.exitCode
+
+  override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode
+
 ```
 
 ## Running examples locally
