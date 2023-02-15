@@ -9,30 +9,33 @@ import org.apache.pulsar.client.api.{
   Producer as JProducer,
   PulsarClient as JPulsarClient,
   PulsarClientException,
+  RegexSubscriptionMode,
   Schema as JSchema
 }
 
 import java.io.IOException
+import java.util.regex.Pattern
 
 object FanoutStreamExample extends ZIOAppDefault:
 
   val pulsarClient = PulsarClient.live("localhost", 6650)
 
-  val pattern = "dynamic-topic-"
-
   val producer: ZIO[PulsarClient & Scope, PulsarClientException, Unit] =
     for
-      sink  <- DynamicProducer.make(bytes => s"$pattern${new String(bytes).toInt % 5}").map(_.asSink)
+      sink  <- DynamicProducer.make(bytes => s"pattern-topic-${new String(bytes).toInt % 5}").map(_.asSink)
       stream = zio.stream.ZStream.fromIterable(0 to 100).map(i => i.toString.getBytes)
       _     <- stream.run(sink)
     yield ()
+
+  val pattern = Pattern.compile("persistent://public/default/pattern-topic-.*")
 
   val consumer: ZIO[PulsarClient with Scope, IOException, Unit] =
     for
       builder  <- ConsumerBuilder.make(JSchema.STRING)
       consumer <- builder
                     .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
-                    .pattern(s"$pattern.*")
+                    .pattern(pattern)
+                    .subscriptionTopicsMode(RegexSubscriptionMode.PersistentOnly)
                     .build
       _        <- consumer.receiveStream.take(10).foreach { a =>
                     Console.printLine("Received: (id: " + a.getMessageId + ") " + a.getValue) *>
@@ -46,6 +49,7 @@ object FanoutStreamExample extends ZIOAppDefault:
       f <- consumer.fork
       _ <- producer
       _ <- f.join
+      _ <- ZIO.never
     yield ()
 
   override def run = app.provideLayer(pulsarClient ++ Scope.default).exitCode

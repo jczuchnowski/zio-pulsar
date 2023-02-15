@@ -15,6 +15,8 @@ import org.apache.pulsar.client.api.{
 }
 import zio.{ Duration, Scope, ZIO }
 
+import java.util.regex.Pattern
+
 case class Subscription[K <: SubscriptionKind](
   name: String,
   `type`: SubscriptionType[K],
@@ -132,6 +134,9 @@ final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M
     new ConsumerBuilder(builder.negativeAckRedeliveryDelay(redeliveryDelay, unit))
 
   def pattern(pattern: String): ConsumerBuilder[T, S with ToTopic, K, Regex] =
+    new ConsumerBuilder(builder.topicsPattern(pattern))
+
+  def pattern(pattern: Pattern): ConsumerBuilder[T, S with ToTopic, K, Regex] =
     new ConsumerBuilder(builder.topicsPattern(pattern))
 
   def patternAutoDiscoveryPeriod(interval: Int, unit: TimeUnit)(implicit ev: M =:= Regex): ConsumerBuilder[T, S, K, M] =

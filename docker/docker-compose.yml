@@ -2,6 +2,8 @@ version: "3.9"
 services:
   manager:
     image: apachepulsar/pulsar-manager:v0.2.0
+    depends_on:
+      - pulsar
     ports:
       - "9527:9527"
       - "7750:7750"
@@ -19,16 +21,19 @@ services:
       - ./manager_setup.sh:/manager_setup.sh
     networks:
       - pulsar
-    command: ["./manager_setup.sh"]
+    command: [ "./manager_setup.sh" ]
   
   pulsar:
     image: apachepulsar/pulsar:2.8.1
     ports:
-      - "6650:6650"
       - "8080:8080"
+      - "6650:6650"
+    environment:
+      PULSAR_MEM: " -Xms512m -Xmx512m -XX:MaxDirectMemorySize=1g"
+    command: bin/pulsar standalone
     volumes:
-      - pulsardata:/pulsar/data
-      - pulsarconf:/pulsar/conf
+      - pulsardata:/tmp/pulsar/data
+      - pulsarconf:/tmp/pulsar/conf
     networks:
       - pulsar
 
