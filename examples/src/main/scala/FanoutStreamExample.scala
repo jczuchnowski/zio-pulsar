@@ -31,14 +31,14 @@ object FanoutStreamExample extends ZIOAppDefault:
 
   val consumer: ZIO[PulsarClient with Scope, IOException, Unit] =
     for
-      builder  <- ConsumerBuilder.make(JSchema.STRING)
+      builder  <- ConsumerBuilder.make(JSchema.BYTES)
       consumer <- builder
-                    .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .pattern(pattern)
+                    .subscription(Subscription("my-subscription", SubscriptionType.Exclusive))
                     .subscriptionTopicsMode(RegexSubscriptionMode.PersistentOnly)
                     .build
       _        <- consumer.receiveStream.take(10).foreach { a =>
-                    Console.printLine("Received: (id: " + a.getMessageId + ") " + a.getValue) *>
+                    Console.printLine("Received: (id: " + a.getMessageId + ") " + new String(a.getValue)) *>
                       consumer.acknowledge(a.getMessageId)
                   }
       _        <- Console.printLine("Finished")
@@ -46,9 +46,8 @@ object FanoutStreamExample extends ZIOAppDefault:
 
   val app =
     for
-      f <- consumer.fork
+      f <- consumer
       _ <- producer
-      _ <- f.join
       _ <- ZIO.never
     yield ()
 
@@ -61,7 +60,7 @@ final class DynamicProducer private (val client: JPulsarClient, val f: Array[Byt
   def send(message: Array[Byte]): IO[PulsarClientException, MessageId] =
     ZIO.attempt {
       val topic    = f(message)
-      val producer = cache.getOrElse(topic, client.newProducer.topic(topic).create)
+      val producer = cache.getOrElse(topic, client.newProducer(JSchema.BYTES).topic(topic).create)
       val m        = producer.send(message)
       cache + (topic -> producer)
       m
