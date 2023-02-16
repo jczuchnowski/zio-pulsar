@@ -16,9 +16,10 @@ import org.apache.pulsar.client.api.{
   SubscriptionInitialPosition,
   SubscriptionMode as JSubscriptionMode
 }
+import zio.pulsar.Properties.ObjectProperty
 import zio.{ Duration, Scope, ZIO }
-import scala.jdk.CollectionConverters.*
 
+import scala.jdk.CollectionConverters.*
 import java.util.regex.Pattern
 
 case class Subscription[K <: SubscriptionKind](
@@ -95,14 +96,11 @@ final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M
   import SubscriptionMode._
   import RegexSubscriptionMode._
 
-  def loadConf(config: Map[String, Any]): ConsumerBuilder[T, S, K, M] =
-    new ConsumerBuilder(builder.loadConf(config.asJava))
+  def loadConf(config: Properties): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.loadConf(config.getProperties.asJava))
 
-  def properties(properties: Map[String, String]): ConsumerBuilder[T, S, K, M] =
-    new ConsumerBuilder(builder.properties(properties.asJava))
-
-  def property(key: String, value: String): ConsumerBuilder[T, S, K, M] =
-    new ConsumerBuilder(builder.property(key, value))
+  def properties(properties: Properties): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.properties(properties.getStringProperties.asJava))
 
   def messageListener(messageListener: MessageListener[T]): ConsumerBuilder[T, S, K, M] =
     new ConsumerBuilder(builder.messageListener(messageListener))
