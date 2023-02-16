@@ -25,9 +25,8 @@ object BasicSpec extends PulsarContainerSpec:
 
   def specLayered: Spec[PulsarEnvironment, PulsarClientException] = suite("PulsarClient")(
     test("send and receive String message") {
-      val topic  = "my-test-topic"
-      val client = ZIO.environmentWithZIO[PulsarClient](_.get.client)
-      (for
+      val topic = "my-test-topic"
+      for
         builder        <- ConsumerBuilder.make(JSchema.STRING)
         consumer       <- builder
                             .topic(topic)
@@ -37,13 +36,12 @@ object BasicSpec extends PulsarContainerSpec:
         producer       <- productBuilder.topic(topic).build
         _              <- producer.send("Hello!")
         m              <- consumer.receive
-      yield assertTrue(m.getValue == "Hello!"))
+      yield assertTrue(m.getValue == "Hello!")
     },
     test("send and receive JSON message") {
       given jsonCodec: JsonCodec[Order] = DeriveJsonCodec.gen[Order]
       val topic                         = "my-test-topic-2"
       val message                       = Order("test item", 10.5, 5, Some("test description"), None, LocalDate.of(2000, 1, 1))
-      val client                        = ZIO.environmentWithZIO[PulsarClient](_.get.client)
       for
         builder        <- ConsumerBuilder.make(Schema.jsonSchema[Order])
         consumer       <- builder

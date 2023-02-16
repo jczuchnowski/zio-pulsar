@@ -27,6 +27,6 @@ object Schema:
         SchemaInfoImpl.builder
           .name(manifest.runtimeClass.getCanonicalName)
           .`type`(SchemaType.JSON)
-          .schema(s.toString.getBytes("UTF-8"))
+          .schema(s.toString.getBytes(StandardCharsets.UTF_8))
           .build
     }
