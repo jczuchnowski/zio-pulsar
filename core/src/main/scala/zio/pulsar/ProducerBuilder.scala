@@ -54,10 +54,12 @@ final class ProducerBuilder[T, S <: ProducerConfigPart] private (
     new ProducerBuilder(builder.blockIfQueueFull(blockIfQueueFull))
 
   def loadConf(config: Properties): ProducerBuilder[T, S] =
-    new ProducerBuilder(builder.loadConf(config.getProperties.asJava))
+    new ProducerBuilder(builder.loadConf(config.getConfig.asJava))
 
-  def properties(properties: Properties): ProducerBuilder[T, S] =
-    new ProducerBuilder(builder.properties(properties.getStringProperties.asJava))
+  def properties(property: Properties.StringProperty, properties: Properties.StringProperty*): ProducerBuilder[T, S] = {
+    val p = Properties(List(property) ++ properties)
+    new ProducerBuilder(builder.properties(p.getProperties.asJava))
+  }
 
   def maxPendingMessages(maxPendingMessages: Int): ProducerBuilder[T, S] =
     new ProducerBuilder(builder.maxPendingMessages(maxPendingMessages))
