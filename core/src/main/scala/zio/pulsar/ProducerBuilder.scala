@@ -10,6 +10,9 @@ import org.apache.pulsar.client.api.{
   Schema
 }
 import zio.pulsar.ProducerConfigPart.*
+import zio.pulsar.Properties.*
+import zio.pulsar.Properties.StringProperties
+import zio.pulsar.Property.StringProperty
 import zio.{ Scope, ZIO }
 
 import scala.jdk.CollectionConverters.*
@@ -53,11 +56,11 @@ final class ProducerBuilder[T, S <: ProducerConfigPart] private (
   def blockIfQueueFull(blockIfQueueFull: Boolean): ProducerBuilder[T, S] =
     new ProducerBuilder(builder.blockIfQueueFull(blockIfQueueFull))
 
-  def loadConf(config: Properties): ProducerBuilder[T, S] =
+  def loadConf(config: ProducerProperties): ProducerBuilder[T, S] =
     new ProducerBuilder(builder.loadConf(config.getConfig.asJava))
 
-  def properties(property: Properties.StringProperty, properties: Properties.StringProperty*): ProducerBuilder[T, S] = {
-    val p = Properties(List(property) ++ properties)
+  def properties(property: StringProperty, properties: StringProperty*): ProducerBuilder[T, S] = {
+    val p = StringProperties(property, properties: _*)
     new ProducerBuilder(builder.properties(p.getProperties.asJava))
   }
 
