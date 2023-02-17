@@ -101,11 +101,9 @@ final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M
     new ConsumerBuilder(builder.loadConf(config.getConfig.asJava))
 
   def properties(
-    property: Property.StringProperty,
-    properties: Property.StringProperty*
+    property: StringProperties
   ): ConsumerBuilder[T, S, K, M] =
-    val p = StringProperties(property, properties: _*)
-    new ConsumerBuilder(builder.properties(p.getProperties.asJava))
+    new ConsumerBuilder(builder.properties(property.getProperties.asJava))
 
   def messageListener(messageListener: MessageListener[T]): ConsumerBuilder[T, S, K, M] =
     new ConsumerBuilder(builder.messageListener(messageListener))
