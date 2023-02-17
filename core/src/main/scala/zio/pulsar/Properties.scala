@@ -47,37 +47,8 @@ object Properties:
 
   sealed trait Property[+T]:
     self =>
-
-    import ConsumerProperty.*
-    import ProducerProperty.*
-
-    def name: String = self match
-      // consumer
-      case topicNames(_)                                => topicNames.getClass.getSimpleName
-      case topicsPattern(_)                             => topicsPattern.getClass.getSimpleName
-      case subscriptionName(_)                          => subscriptionName.getClass.getSimpleName
-      case subscriptionType(_)                          => subscriptionType.getClass.getSimpleName
-      case receiverQueueSize(_)                         => receiverQueueSize.getClass.getSimpleName
-      case acknowledgementsGroupTimeMicros(_)           => acknowledgementsGroupTimeMicros.getClass.getSimpleName
-      case negativeAckRedeliveryDelayMicros(_)          => negativeAckRedeliveryDelayMicros.getClass.getSimpleName
-      case maxTotalReceiverQueueSizeAcrossPartitions(_) =>
-        maxTotalReceiverQueueSizeAcrossPartitions.getClass.getSimpleName
-      case consumerName(_)                              => consumerName.getClass.getSimpleName
-      case ackTimeoutMillis(_)                          => ackTimeoutMillis.getClass.getSimpleName
-      case tickDurationMillis(_)                        => tickDurationMillis.getClass.getSimpleName
-      case priorityLevel(_)                             => priorityLevel.getClass.getSimpleName
-
-      // producer
-      case topicName(_)                          => topicName.getClass.getSimpleName
-      case producerName(_)                       => producerName.getClass.getSimpleName
-      case sendTimeoutMs(_)                      => sendTimeoutMs.getClass.getSimpleName
-      case blockIfQueueFull(_)                   => blockIfQueueFull.getClass.getSimpleName
-      case maxPendingMessages(_)                 => maxPendingMessages.getClass.getSimpleName
-      case maxPendingMessagesAcrossPartitions(_) => maxPendingMessagesAcrossPartitions.getClass.getSimpleName
-      case _                                     => "invalid"
-
+    def name: String         = self.getClass.getSimpleName
     def value: T
-
     def _key: Option[String] = None
 
   end Property
