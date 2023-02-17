@@ -12,7 +12,7 @@ import zio.test.Assertion._
 import zio.test._
 import java.time.LocalDate
 
-object BasicSpec extends PulsarContainerSpec:
+object PulsarClientSpec extends PulsarContainerSpec:
 
   case class Order(
     item: String,

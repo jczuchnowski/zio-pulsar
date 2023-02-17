@@ -5,8 +5,8 @@ import zio.{ IO, ZIO }
 
 import java.util.concurrent.TimeUnit
 //import zio.blocking._
-import zio.stream._
-import scala.jdk.CollectionConverters._
+import zio.stream.*
+import scala.jdk.CollectionConverters.*
 
 final class Consumer[M](val consumer: JConsumer[M]):
 
