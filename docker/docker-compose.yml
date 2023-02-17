@@ -12,6 +12,7 @@ services:
     networks:
       - pulsar
   
+  # add enviments: http://pulsar:8080
   manager_setup:
     image: curlimages/curl:7.81.0
     depends_on:
