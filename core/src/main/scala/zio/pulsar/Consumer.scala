@@ -13,7 +13,7 @@ final class Consumer[M](val consumer: JConsumer[M]):
   def acknowledge(messageId: MessageId): IO[PulsarClientException, Unit] =
     ZIO.attempt(consumer.acknowledge(messageId)).refineToOrDie[PulsarClientException]
 
-  def acknowledge[T](message: Message[T]): IO[PulsarClientException, Unit] =
+  def acknowledge(message: Message[M]): IO[PulsarClientException, Unit] =
     ZIO.attempt(consumer.acknowledge(message)).refineToOrDie[PulsarClientException]
 
   def acknowledge(messages: Seq[MessageId]): IO[PulsarClientException, Unit] =
