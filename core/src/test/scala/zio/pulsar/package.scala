@@ -8,5 +8,5 @@ import zio.test.TestEnvironment
  * @version 1.0,2023/2/16
  */
 package object pulsar {
-  type PulsarEnvironment = TestEnvironment & PulsarClient & Scope
+  type PulsarEnvironment = TestEnvironment with PulsarClient with Scope
 }
