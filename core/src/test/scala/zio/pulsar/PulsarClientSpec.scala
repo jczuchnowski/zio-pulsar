@@ -7,10 +7,17 @@ import zio.test.Assertion.{ assertion, equalTo }
 import zio.test.junit.JUnitRunnableSpec
 import zio.test.{ assertZIOImpl, suite, test }
 import zio.test.TestAspect.sequential
-import org.apache.pulsar.client.api.{ PulsarClientException, RegexSubscriptionMode, Schema as JSchema }
-import zio.test.Assertion._
-import zio.test._
+import org.apache.pulsar.client.api.{
+  BatchReceivePolicy,
+  PulsarClientException,
+  RegexSubscriptionMode,
+  Schema as JSchema
+}
+import zio.test.Assertion.*
+import zio.test.*
+
 import java.time.LocalDate
+import java.util.concurrent.TimeUnit
 
 object PulsarClientSpec extends PulsarContainerSpec:
 
@@ -54,5 +61,55 @@ object PulsarClientSpec extends PulsarContainerSpec:
         m              <- consumer.receive
       yield assertTrue(m.getValue == message)
 
+    },
+    test("send and batch receive JSON message") {
+      given jsonCodec: JsonCodec[Order] = DeriveJsonCodec.gen[Order]
+
+      val topic   = "my-test-topic-3"
+      val message = Order("test item", 10.5, 5, Some("test description"), None, LocalDate.of(2000, 1, 1))
+      for
+        builder        <- ConsumerBuilder.make(Schema.jsonSchema[Order])
+        consumer       <- builder
+                            .topic(topic)
+                            .batchReceivePolicy(
+                              BatchReceivePolicy
+                                .builder()
+                                .maxNumMessages(10)
+                                .maxNumBytes(1024)
+                                .timeout(10, TimeUnit.SECONDS)
+                                .build()
+                            )
+                            .subscription(Subscription("my-test-subscription-3", SubscriptionType.Exclusive))
+                            .build
+        productBuilder <- ProducerBuilder.make(Schema.jsonSchema[Order])
+        producer       <- productBuilder.topic(topic).build
+        _              <- ZIO.foreach(0 to 10)(_ => producer.send(message))
+        ms             <- consumer.batchReceive
+      yield assertTrue(ms.size == 10)
+    },
+    test("send and batch receive JSON message") {
+      given jsonCodec: JsonCodec[Order] = DeriveJsonCodec.gen[Order]
+
+      val topic   = "my-test-topic-4"
+      val message = Order("test item", 10.5, 5, Some("test description"), None, LocalDate.of(2000, 1, 1))
+      for
+        builder        <- ConsumerBuilder.make(Schema.jsonSchema[Order])
+        consumer       <- builder
+                            .topic(topic)
+                            .batchReceivePolicy(
+                              BatchReceivePolicy
+                                .builder()
+                                .maxNumMessages(10)
+                                .maxNumBytes(1024)
+                                .timeout(10, TimeUnit.SECONDS)
+                                .build()
+                            )
+                            .subscription(Subscription("my-test-subscription-4", SubscriptionType.Exclusive))
+                            .build
+        productBuilder <- ProducerBuilder.make(Schema.jsonSchema[Order])
+        producer       <- productBuilder.topic(topic).build
+        _              <- ZIO.foreach(0 to 10)(_ => producer.send(message))
+        ms             <- consumer.batchReceiveStream.runCollect
+      yield assertTrue(ms.size == 10)
     }
   ) @@ sequential

@@ -26,19 +26,20 @@ lazy val core = project
   .settings(
     name           := "zio-pulsar",
     libraryDependencies ++= Seq(
-      "dev.zio"             %% "zio"                          % zioVersion    % Provided,
-      "dev.zio"             %% "zio-streams"                  % zioVersion    % Provided,
-      "dev.zio"             %% "zio-json"                     % "0.4.2"       % Provided,
-      "com.sksamuel.avro4s" %% "avro4s-core"                  % "5.0.3",
-      "org.apache.pulsar"    % "pulsar-client"                % pulsarVersion,
-      "ch.qos.logback"       % "logback-classic"              % "1.4.5",
-      "dev.zio"             %% "zio-test"                     % zioVersion    % Test,
-      "dev.zio"             %% "zio-test-sbt"                 % zioVersion    % Test,
-      "dev.zio"             %% "zio-test-junit"               % zioVersion    % Test,
-      "dev.zio"             %% "zio-test-magnolia"            % zioVersion    % Test,
-      "org.testcontainers"   % "pulsar"                       % "1.17.6"      % Test,
-      "com.dimafeng"        %% "testcontainers-scala-pulsar"  % "0.40.12"     % Test,
-      "org.apache.pulsar"    % "pulsar-client-admin-original" % pulsarVersion % Test
+      "dev.zio"             %% "zio"                         % zioVersion    % Provided,
+      "dev.zio"             %% "zio-streams"                 % zioVersion    % Provided,
+      "dev.zio"             %% "zio-json"                    % "0.4.2"       % Provided,
+      "com.sksamuel.avro4s" %% "avro4s-core"                 % "5.0.3",
+      "org.apache.pulsar"    % "pulsar-client"               % pulsarVersion,
+      "ch.qos.logback"       % "logback-classic"             % "1.4.5",
+      "dev.zio"             %% "zio-test"                    % zioVersion    % Test,
+      "dev.zio"             %% "zio-test-sbt"                % zioVersion    % Test,
+      "dev.zio"             %% "zio-test-junit"              % zioVersion    % Test,
+      "dev.zio"             %% "zio-test-magnolia"           % zioVersion    % Test,
+      "org.testcontainers"   % "pulsar"                      % "1.17.5"      % Test,
+      "com.dimafeng"        %% "testcontainers-scala-pulsar" % "0.40.12"     % Test,
+      "org.apache.pulsar"    % "pulsar-client-admin-api"     % pulsarVersion % Test,
+      "org.apache.pulsar"    % "pulsar-client-admin"         % pulsarVersion % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )

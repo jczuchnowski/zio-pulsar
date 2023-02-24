@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit
 import org.apache.pulsar.client.api.{
   BatchReceivePolicy as JBatchReceivePolicy,
   ConsumerBuilder as JConsumerBuilder,
+  ConsumerCryptoFailureAction,
   ConsumerEventListener as JConsumerEventListener,
   ConsumerInterceptor,
   DeadLetterPolicy as JDeadLetterPolicy,
@@ -198,6 +199,9 @@ final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M
 
   def topic(topic: String): ConsumerBuilder[T, S with ToTopic, K, Topic] =
     new ConsumerBuilder(builder.topic(topic))
+
+  def cryptoFailureAction(action: ConsumerCryptoFailureAction): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.cryptoFailureAction(action))
 
   def build(implicit ev: S =:= ConfigComplete): ZIO[PulsarClient with Scope, PulsarClientException, Consumer[T]] =
     val consumer = ZIO.attempt(new Consumer(builder.subscribe)).refineToOrDie[PulsarClientException]

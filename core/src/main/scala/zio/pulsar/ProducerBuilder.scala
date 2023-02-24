@@ -65,6 +65,15 @@ final class ProducerBuilder[T, S <: ProducerConfigPart] private (
   def maxPendingMessages(maxPendingMessages: Int): ProducerBuilder[T, S] =
     new ProducerBuilder(builder.maxPendingMessages(maxPendingMessages))
 
+  def batchingMaxPublishDelay(batchDelay: Long, timeUnit: TimeUnit): ProducerBuilder[T, S] =
+    new ProducerBuilder(builder.batchingMaxPublishDelay(batchDelay, timeUnit))
+
+  def batchingMaxMessages(batchMessagesMaxMessagesPerBatch: Int): ProducerBuilder[T, S] =
+    new ProducerBuilder(builder.batchingMaxMessages(batchMessagesMaxMessagesPerBatch))
+
+  def enableBatching(enableBatching: Boolean): ProducerBuilder[T, S] =
+    new ProducerBuilder(builder.enableBatching(enableBatching))
+
   def intercept(interceptor: ProducerInterceptor, interceptors: ProducerInterceptor*): ProducerBuilder[T, S] =
     new ProducerBuilder(builder.intercept(Seq(interceptor) ++ interceptors: _*))
 

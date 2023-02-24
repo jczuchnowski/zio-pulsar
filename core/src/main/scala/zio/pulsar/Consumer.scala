@@ -1,7 +1,7 @@
 package zio.pulsar
 
 import org.apache.pulsar.client.api.{ Consumer as JConsumer, Message, MessageId, PulsarClientException }
-import zio.{ IO, ZIO }
+import zio.{ IO, Task, ZIO }
 
 import java.util.concurrent.TimeUnit
 //import zio.blocking._
@@ -33,3 +33,9 @@ final class Consumer[M](val consumer: JConsumer[M]):
 
   val receiveStream: Stream[PulsarClientException, Message[M]] =
     ZStream.repeatZIO(ZIO.attemptBlocking(consumer.receive).refineToOrDie[PulsarClientException])
+
+  val batchReceiveStream: Stream[PulsarClientException, Message[M]] =
+    ZStream.fromIterable(consumer.batchReceive().asScala)
+
+  val batchReceive: IO[PulsarClientException, List[Message[M]]] =
+    ZIO.attempt(consumer.batchReceive().asScala.toList).refineToOrDie[PulsarClientException]
