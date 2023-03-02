@@ -98,13 +98,14 @@ final class ConsumerBuilder[T, S <: ConsumerConfigPart, K <: SubscriptionKind, M
   import SubscriptionMode._
   import RegexSubscriptionMode._
 
-  def loadConf(config: ConsumerProperties): ConsumerBuilder[T, S, K, M] =
-    new ConsumerBuilder(builder.loadConf(config.getConfig.asJava))
+  def loadConf(config: Property.Consumer[_], configs: Property.Consumer[_]*): ConsumerBuilder[T, S, K, M] =
+    new ConsumerBuilder(builder.loadConf(ConsumerProperties(config, configs.toList).getConfig.asJava))
 
   def properties(
-    property: StringProperties
+    property: StringProperty,
+    properties: StringProperty*
   ): ConsumerBuilder[T, S, K, M] =
-    new ConsumerBuilder(builder.properties(property.getProperties.asJava))
+    new ConsumerBuilder(builder.properties(StringProperties(property, properties.toList).getProperties.asJava))
 
   def messageListener(messageListener: MessageListener[T]): ConsumerBuilder[T, S, K, M] =
     new ConsumerBuilder(builder.messageListener(messageListener))

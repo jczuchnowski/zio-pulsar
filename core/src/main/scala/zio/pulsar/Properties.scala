@@ -23,7 +23,7 @@ import scala.jdk.CollectionConverters.*
  *   梦境迷离
  * @version 1.0,2023/2/16
  */
-abstract class Properties private (
+private[pulsar] abstract class Properties private (
   private val propertyList: List[Property[_]] = Nil
 ):
   import Properties.*
@@ -51,9 +51,10 @@ end Properties
 object Properties:
   import Property.*
 
-  final case class ConsumerProperties(c: Consumer[_], cl: Consumer[_]*)     extends Properties(c :: cl.toList)
-  final case class ProducerProperties(p: Producer[_], pl: Producer[_]*)     extends Properties(p :: pl.toList)
-  final case class StringProperties(s: StringProperty, sl: StringProperty*) extends Properties(s :: sl.toList)
+  private[pulsar] final case class ConsumerProperties(c: Consumer[_], cl: List[Consumer[_]]) extends Properties(c :: cl)
+  private[pulsar] final case class ProducerProperties(p: Producer[_], pl: List[Producer[_]]) extends Properties(p :: pl)
+  private[pulsar] final case class StringProperties(s: StringProperty, sl: List[StringProperty])
+      extends Properties(s :: sl)
 
 end Properties
 

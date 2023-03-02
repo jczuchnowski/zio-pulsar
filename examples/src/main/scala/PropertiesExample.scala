@@ -11,23 +11,18 @@ object PropertiesExample extends ZIOAppDefault:
 
   val topic = "properties-topic"
 
-  import Properties.*
-  import Property.*
-  import Property.Consumer.*
-  import Property.Producer.*
-
   val app: ZIO[PulsarClient with Scope, IOException, Unit] =
     for
       builder        <- ConsumerBuilder.make(JSchema.STRING)
       consumer       <- builder
                           .topic(topic)
-                          .loadConf(ConsumerProperties(consumerName("hello-consumer")))
+                          .loadConf(Property.Consumer.consumerName("hello-consumer"))
                           .subscription(Subscription("my-subscription", SubscriptionType.Shared))
                           .build
       productBuilder <- ProducerBuilder.make(JSchema.STRING)
       producer       <- productBuilder
                           .topic(topic)
-                          .loadConf(ProducerProperties(producerName("hello-producer")))
+                          .loadConf(Property.Producer.producerName("hello-producer"))
                           .build
       _              <- producer.send("Hello!")
       m              <- consumer.receive
