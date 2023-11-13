@@ -28,7 +28,7 @@ lazy val core = project
       "dev.zio"             %% "zio"               % zioVersion % Provided,
       "dev.zio"             %% "zio-streams"       % zioVersion % Provided,
       "dev.zio"             %% "zio-json"          % "0.3.0-RC3" % Provided,
-      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1", 
+      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.7", 
       "org.apache.pulsar"    % "pulsar-client"     % "2.9.1",
       "ch.qos.logback"       % "logback-classic"   % "1.2.10",
       "dev.zio"             %% "zio-test"          % zioVersion % Test,
@@ -51,7 +51,7 @@ lazy val examples = project
       "dev.zio"       %% "zio"             % zioVersion,
       "dev.zio"       %% "zio-streams"     % zioVersion,
       "dev.zio"             %% "zio-json"          % "0.3.0-RC3",
-      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.0.M1",
+      "com.sksamuel.avro4s" %% "avro4s-core"       % "5.0.7",
       "ch.qos.logback" % "logback-classic" % "1.2.10"
     )
   )
